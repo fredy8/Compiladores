@@ -1,0 +1,34 @@
+int ret;
+
+int parseInt(string line) {
+  int i;
+  ret = 0;
+  i = 0;
+  while(i < line.size()) {
+    ret *= 10;
+    ret += line[i] - '0';
+    i = i + 1;
+  }
+
+  return ret;
+}
+
+int main(int args, string arr[5]) {
+  int n1, n2, i, gcd;
+  string line;
+
+  print("Enter two integers: \n");
+  line = read();
+  n1 = parseInt(line);
+  line = read();
+  n2 = parseInt(line);
+
+  for(i = 0; i <= n1 && i <= n2; i = i+1) {
+    if ( n1 % i == 0 && n2 & i == 0)
+      gcd = i;
+  }
+
+  print("GCD of " + n1 + " and " + n2 + " is " + gcd");
+
+  return 0;
+}
