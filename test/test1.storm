@@ -1,23 +1,23 @@
 int ret;
 
-int parseInt(string line) {
+function int parseInt(string line) {
   int i;
   ret = 0;
   i = 0;
   while(i < line.size()) {
-    ret *= 10;
-    ret += line[i] - '0';
+    ret = ret*10;
+    ret = ret + line[i] - '0';
     i = i + 1;
   }
 
   return ret;
 }
 
-int main(int args, string arr[5]) {
+function int main(int args, string arr[5]) {
   int n1, n2, i, gcd;
   string line;
 
-  print("Enter two integers: \n");
+  print("Enter two integers ");
   line = read();
   n1 = parseInt(line);
   line = read();

@@ -51,13 +51,11 @@ program:
   | function program
   | class_declr program;
 var_declr:
-  | var_declr_a var_declr;
+  type var_declr_a ';';
 var_declr_a:
-  type var_declr_b ';';
-var_declr_b:
-  var_declr_c
-  | var_declr_b ',' var_declr_c;
-var_declr_c:
+  var_arr
+  | var_declr_a ',' var_arr;
+var_arr:
   ID 
   | ID '[' C_INT ']';
 function:
@@ -66,7 +64,7 @@ parameters:
   parameter
   | parameters ',' parameter;
 parameter:
-  type ID;
+  type var_arr;
 block:
   '{' statements '}';
 statements:
@@ -79,7 +77,7 @@ statement:
   | do_while_stm
   | if_stm;
 for_stm:
-  FOR '(' var_declr expr ';' assign ')' block;
+  FOR '(' assign ';' expr ';' assign ')' block;
 while_stm:
   WHILE '(' expr ')' block;
 do_while_stm:
@@ -91,9 +89,9 @@ else_stm:
 return_type:
   T_VOID | type;
 type:
-  T_INT | T_FLOAT | T_STRING | T_CHAR | id;
+  T_INT | T_FLOAT | T_STRING | T_CHAR | ID;
 class_declr:
-  CLASS id '{' class_declr_a '}';
+  CLASS ID '{' class_declr_a '}';
 class_declr_a:
   | var_declr class_declr_a
   | function class_declr_a;
@@ -101,34 +99,39 @@ expr:
   assign
   | fn_call
   | obj_fn_call
-  | literal
   | operation
   | '(' expr ')'
-  | ID;
+  | literal
+  | arr_access
+  | ID { cout << yylval.sval << endl; };
 assign:
-  id '=' expr;
+  ID '=' expr;
 operation:
   unary_operator expr
   | expr binary_operator expr;
 unary_operator:
   '!';
 binary_operator:
-  '+' | '-' | '*' | '/';
+  '+' | '-' | '*' | '/' | '<' | '>';
 fn_call:
-  id '(' fn_call_a ')';
-fn_call_a
-  | fn_call_b;
-fn_call_b:
+  ID '(' arguments ')';
+obj_fn_call:
+  expr '.' fn_call;
+arguments:
+  | args;
+args:
   expr
-  | fn_call_b ',' expr;
+  | args ',' expr;
 literal:
   C_INT | C_FLOAT | C_STRING | C_CHAR;
+arr_access:
+  ID '[' expr ']';
 
 %%
 
 int main(int, char**) {
   // Open a file to read the input from it
-  string filename = "a.storm";
+  string filename = "test\\test1.storm";
   FILE *myfile = fopen(filename.c_str(), "r");
   if (!myfile) {
     cout << "I can't open " << filename << "!" << endl;

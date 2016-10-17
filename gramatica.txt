@@ -5,15 +5,15 @@ VAR_DECLR ::= TYPE id ARR? (',' id ARR?)* ';'
 
 ARR ::= '[' cte_int ']'
 
-FUNCTION ::= 'function' RETURN_TYPE id '(' PARAMETERS ')' BLOCK
+FUNCTION ::= RETURN_TYPE id '(' PARAMETERS ')' BLOCK
 
-PARAMETERS ::= (TYPE ID (',' TYPE ID)*)?
+PARAMETERS ::= (TYPE ID ARR? (',' TYPE ID ARR?)*)?
 
 BLOCK ::= '{' STATEMENT* '}'
 
 STATEMENT ::= (VAR_DECLR | EXPR ';' | FOR | WHILE | DO_WHILE | IF)
 
-FOR ::= 'for' '(' VAR_DECLR EXPR ';' ASSIGN ')' BLOCK
+FOR ::= 'for' '(' ASSIGN ';' EXPR ';' ASSIGN ')' BLOCK
 
 WHILE ::= 'while' '(' EXPR ')' BLOCK
 
@@ -27,7 +27,9 @@ TYPE ::= 'int' | 'float' | 'string' | 'char' | id
 
 CLASS ::= 'class' id '{' (VAR_DECLR | FUNCTION)* '}'
 
-EXPR ::= (ASSIGN | FN_CALL | OBJ_FN_CALL | LITERAL | OPERATION | '(' EXPR ')' | id)
+EXPR ::= (ASSIGN | FN_CALL | ARR_ACCESS | OBJ_FN_CALL | LITERAL | OPERATION | '(' EXPR ')' | id)
+
+ARR_ACCESS ::= id '[' EXPR ']'
 
 ASSIGN ::= id '=' EXPR
 
