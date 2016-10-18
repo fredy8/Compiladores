@@ -1,0 +1,5 @@
+function int main(int n) {
+}
+
+function void main(int n) {
+}

@@ -1,0 +1,5 @@
+int k;
+
+function int main(int n) {
+  int k;
+}

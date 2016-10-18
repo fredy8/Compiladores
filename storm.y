@@ -27,6 +27,7 @@ struct Function {
   string name;
   string returnType;
   vector<Param> params;
+  SymbolTable localSymbolTable;
   Function(string name, string returnType, vector<Param> params) : params(params), returnType(returnType), name(name) {}
   Function() {}
 };
@@ -35,12 +36,11 @@ typedef map<string, Function> FunctionsTable;
 
 FunctionsTable functions;
 SymbolTable globalScopeSymbolTable;
-stack<SymbolTable> functionScopeSymbolTable;
 string lastIdName, lastType, lastFuncName, lastReturnType, lastClassName;
 int lastArraySize;
 vector<Param> params;
 set<string> classes;
-stack<string> fnCallInits;
+bool inFunction = false;
 
 void semanticError(string err) {
   cout << "Semantic error: " << err << endl;
@@ -51,28 +51,44 @@ void declareParam() {
   params.push_back(Param(lastIdName, lastType));
 }
 
-void declareFunc() {
-  functions[lastFuncName] = Function(lastFuncName, lastReturnType, params);
-  params.clear();
-}
-
 void declareVar() {
-  SymbolTable& table = globalScopeSymbolTable;
-  if (!functionScopeSymbolTable.empty()) {
-    table = functionScopeSymbolTable.top();
+  SymbolTable* table = &globalScopeSymbolTable;
+  if (inFunction) {
+    table = &functions[lastFuncName].localSymbolTable;
+
+    if (table->find(lastIdName) != table->end()) {
+      semanticError("Redeclaration of " + lastIdName);
+    }
   }
 
-  if (table.find(lastIdName) != table.end()) {
+  if (globalScopeSymbolTable.find(lastIdName) != globalScopeSymbolTable.end()) {
     semanticError("Redeclaration of " + lastIdName);
   }
+  
+  table->operator[](lastIdName) = lastType;
+}
 
-  table[lastIdName] = lastType;
+void declareFunc() {
+  if (functions.find(lastFuncName) != functions.end()) {
+    semanticError("Redefinition of function " + lastFuncName);
+  }
+
+  Function fn = Function(lastFuncName, lastReturnType, params);
+  functions[lastFuncName] = fn;
+  params.clear();
+  inFunction = true;
+
+  for(auto& param: fn.params) {
+    lastIdName = param.paramName;
+    lastType = param.paramType;
+    declareVar();
+  }
 }
 
 void validateArraySize() {
-   if (lastArraySize <= 0) {
+  if (lastArraySize <= 0) {
     semanticError("Expected array size greater than 0.");
-   }
+  }
 }
 
 void declareClass() {
@@ -89,27 +105,14 @@ void validateType() {
   }
 }
 
-void fnCallInit() {
-  if (functions.find(lastIdName) == functions.end()) {
-    semanticError("Use of undeclared function: " + lastIdName);
-  }
+void functionExit() {
+  inFunction = false;
+}
 
-  fnCallInits.push(lastIdName);
+void fnCallInit() {
 }
 
 void fnCall() {
-  Function& fn = functions[fnCallInits.top()];
-  fnCallInits.pop();
-  functionScopeSymbolTable.push(SymbolTable());
-  for(auto& param: fn.params) {
-    lastIdName = param.paramName;
-    lastType = param.paramType;
-    declareVar();
-  }
-}
-
-void functionExit() {
-  functionScopeSymbolTable.pop();
 }
 
 void yyerror(const char *s);
@@ -152,15 +155,15 @@ program:
 var_declr:
   type var_declr_a ';';
 var_declr_a:
-  var_arr
-  | var_declr_a ',' var_arr;
+  var_arr { declareVar(); }
+  | var_declr_a ',' var_arr { declareVar(); };
 id:
   ID { lastIdName = string(yylval.sval); } ;
 var_arr:
   id
   | id '[' C_INT ']' { lastArraySize = yylval.ival; validateArraySize(); };
 function:
-  FUNCTION return_type { lastReturnType = string(yylval.sval); } id { lastFuncName = string(yylval.sval); } '(' parameters ')' { declareFunc(); } block;
+  FUNCTION return_type { lastReturnType = string(yylval.sval); } id { lastFuncName = string(yylval.sval); } '(' parameters ')' { declareFunc(); } block { functionExit(); };
 parameters:
   parameter
   | parameters ',' parameter;
@@ -232,16 +235,16 @@ arr_access:
 
 %%
 
-int main(int, char**) {
+int main(int argc, char** argv) {
   // Open a file to read the input from it
-#ifdef __APPLE__
-  string filename = "test/test1.storm";
-#else
-  string filename = "test\\test1.storm";
-#endif
-  FILE *myfile = fopen(filename.c_str(), "r");
+  if (argc < 2) {
+    cout << "error: no input file" << endl;
+    exit(1);
+  }
+
+  FILE *myfile = fopen(argv[1], "r");
   if (!myfile) {
-    cout << "I can't open " << filename << "!" << endl;
+    cout << "I can't open " << argv[1] << "!" << endl;
     return -1;
   }
   // set flex to read from it instead of defaulting to STDIN:

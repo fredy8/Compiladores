@@ -144,6 +144,7 @@ struct Function {
   string name;
   string returnType;
   vector<Param> params;
+  SymbolTable localSymbolTable;
   Function(string name, string returnType, vector<Param> params) : params(params), returnType(returnType), name(name) {}
   Function() {}
 };
@@ -152,12 +153,11 @@ typedef map<string, Function> FunctionsTable;
 
 FunctionsTable functions;
 SymbolTable globalScopeSymbolTable;
-stack<SymbolTable> functionScopeSymbolTable;
 string lastIdName, lastType, lastFuncName, lastReturnType, lastClassName;
 int lastArraySize;
 vector<Param> params;
 set<string> classes;
-stack<string> fnCallInits;
+bool inFunction = false;
 
 void semanticError(string err) {
   cout << "Semantic error: " << err << endl;
@@ -168,28 +168,45 @@ void declareParam() {
   params.push_back(Param(lastIdName, lastType));
 }
 
-void declareFunc() {
-  functions[lastFuncName] = Function(lastFuncName, lastReturnType, params);
-  params.clear();
-}
-
 void declareVar() {
-  SymbolTable& table = globalScopeSymbolTable;
-  if (!functionScopeSymbolTable.empty()) {
-    table = functionScopeSymbolTable.top();
+  SymbolTable* table = &globalScopeSymbolTable;
+  if (inFunction) {
+    table = &functions[lastFuncName].localSymbolTable;
+
+    if (table->find(lastIdName) != table->end()) {
+      semanticError("Redeclaration of " + lastIdName);
+    }
   }
 
-  if (table.find(lastIdName) != table.end()) {
+  if (globalScopeSymbolTable.find(lastIdName) != globalScopeSymbolTable.end()) {
     semanticError("Redeclaration of " + lastIdName);
   }
 
-  table[lastIdName] = lastType;
+  
+  table->operator[](lastIdName) = lastType;
+}
+
+void declareFunc() {
+  if (functions.find(lastFuncName) != functions.end()) {
+    semanticError("Redefinition of function " + lastFuncName);
+  }
+
+  Function fn = Function(lastFuncName, lastReturnType, params);
+  functions[lastFuncName] = fn;
+  params.clear();
+  inFunction = true;
+
+  for(auto& param: fn.params) {
+    lastIdName = param.paramName;
+    lastType = param.paramType;
+    declareVar();
+  }
 }
 
 void validateArraySize() {
-   if (lastArraySize <= 0) {
+  if (lastArraySize <= 0) {
     semanticError("Expected array size greater than 0.");
-   }
+  }
 }
 
 void declareClass() {
@@ -206,27 +223,14 @@ void validateType() {
   }
 }
 
-void fnCallInit() {
-  if (functions.find(lastIdName) == functions.end()) {
-    semanticError("Use of undeclared function: " + lastIdName);
-  }
+void functionExit() {
+  inFunction = false;
+}
 
-  fnCallInits.push(lastIdName);
+void fnCallInit() {
 }
 
 void fnCall() {
-  Function& fn = functions[fnCallInits.top()];
-  fnCallInits.pop();
-  functionScopeSymbolTable.push(SymbolTable());
-  for(auto& param: fn.params) {
-    lastIdName = param.paramName;
-    lastType = param.paramType;
-    declareVar();
-  }
-}
-
-void functionExit() {
-  functionScopeSymbolTable.pop();
 }
 
 void yyerror(const char *s);
@@ -252,7 +256,7 @@ void yyerror(const char *s);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 118 "storm.y"
+#line 122 "storm.y"
 {
   int ival;
   float fval;
@@ -260,7 +264,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 193 of yacc.c.  */
-#line 264 "storm.tab.c"
+#line 268 "storm.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -273,7 +277,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 277 "storm.tab.c"
+#line 281 "storm.tab.c"
 
 #ifdef short
 # undef short
@@ -584,14 +588,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   148,   148,   149,   150,   151,   153,   155,   156,   158,
-     160,   161,   163,   163,   163,   163,   165,   166,   168,   170,
-     171,   172,   174,   175,   176,   177,   178,   179,   180,   182,
-     184,   186,   188,   189,   190,   192,   193,   195,   195,   197,
-     199,   199,   199,   199,   199,   201,   201,   202,   203,   204,
-     206,   207,   208,   209,   210,   211,   212,   213,   215,   217,
-     218,   220,   220,   222,   223,   224,   226,   227,   229,   229,
-     229,   229,   231
+       0,   152,   152,   153,   154,   155,   157,   159,   160,   162,
+     164,   165,   167,   167,   167,   167,   169,   170,   172,   174,
+     175,   176,   178,   179,   180,   181,   182,   183,   184,   186,
+     188,   190,   192,   193,   194,   196,   197,   199,   199,   201,
+     203,   203,   203,   203,   203,   205,   205,   206,   207,   208,
+     210,   211,   212,   213,   214,   215,   216,   217,   219,   221,
+     222,   224,   224,   226,   227,   228,   230,   231,   233,   233,
+     233,   233,   235
 };
 #endif
 
@@ -1592,64 +1596,79 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 9:
-#line 158 "storm.y"
+        case 7:
+#line 159 "storm.y"
+    { declareVar(); ;}
+    break;
+
+  case 8:
+#line 160 "storm.y"
+    { declareVar(); ;}
+    break;
+
+  case 9:
+#line 162 "storm.y"
     { lastIdName = string(yylval.sval); ;}
     break;
 
   case 11:
-#line 161 "storm.y"
+#line 165 "storm.y"
     { lastArraySize = yylval.ival; validateArraySize(); ;}
     break;
 
   case 12:
-#line 163 "storm.y"
+#line 167 "storm.y"
     { lastReturnType = string(yylval.sval); ;}
     break;
 
   case 13:
-#line 163 "storm.y"
+#line 167 "storm.y"
     { lastFuncName = string(yylval.sval); ;}
     break;
 
   case 14:
-#line 163 "storm.y"
+#line 167 "storm.y"
     { declareFunc(); ;}
     break;
 
+  case 15:
+#line 167 "storm.y"
+    { functionExit(); ;}
+    break;
+
   case 18:
-#line 168 "storm.y"
+#line 172 "storm.y"
     { declareParam() ;}
     break;
 
   case 39:
-#line 197 "storm.y"
+#line 201 "storm.y"
     { lastType = string(yylval.sval); ;}
     break;
 
   case 44:
-#line 199 "storm.y"
+#line 203 "storm.y"
     { validateType(); ;}
     break;
 
   case 45:
-#line 201 "storm.y"
+#line 205 "storm.y"
     { lastClassName = string(yylval.sval); declareClass(); ;}
     break;
 
   case 61:
-#line 220 "storm.y"
+#line 224 "storm.y"
     { fnCallInit(); ;}
     break;
 
   case 62:
-#line 220 "storm.y"
+#line 224 "storm.y"
     { fnCall(); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1653 "storm.tab.c"
+#line 1672 "storm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1863,19 +1882,19 @@ yyreturn:
 }
 
 
-#line 233 "storm.y"
+#line 237 "storm.y"
 
 
-int main(int, char**) {
+int main(int argc, char** argv) {
   // Open a file to read the input from it
-#ifdef __APPLE__
-  string filename = "test/test1.storm";
-#else
-  string filename = "test\\test1.storm";
-#endif
-  FILE *myfile = fopen(filename.c_str(), "r");
+  if (argc < 2) {
+    cout << "error: no input file" << endl;
+    exit(1);
+  }
+
+  FILE *myfile = fopen(argv[1], "r");
   if (!myfile) {
-    cout << "I can't open " << filename << "!" << endl;
+    cout << "I can't open " << argv[1] << "!" << endl;
     return -1;
   }
   // set flex to read from it instead of defaulting to STDIN:
