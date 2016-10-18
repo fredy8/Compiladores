@@ -1,0 +1,4 @@
+TODO:
+
+1. Checar que coincidan los argumentos con los parametros, en cantidad y tipo.
+2. Checar que exista la funcion que se llama.
