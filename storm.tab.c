@@ -181,7 +181,6 @@ void declareVar() {
   if (globalScopeSymbolTable.find(lastIdName) != globalScopeSymbolTable.end()) {
     semanticError("Redeclaration of " + lastIdName);
   }
-
   
   table->operator[](lastIdName) = lastType;
 }
@@ -256,7 +255,7 @@ void yyerror(const char *s);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 122 "storm.y"
+#line 121 "storm.y"
 {
   int ival;
   float fval;
@@ -264,7 +263,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 193 of yacc.c.  */
-#line 268 "storm.tab.c"
+#line 267 "storm.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -277,7 +276,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 281 "storm.tab.c"
+#line 280 "storm.tab.c"
 
 #ifdef short
 # undef short
@@ -588,14 +587,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   152,   152,   153,   154,   155,   157,   159,   160,   162,
-     164,   165,   167,   167,   167,   167,   169,   170,   172,   174,
-     175,   176,   178,   179,   180,   181,   182,   183,   184,   186,
-     188,   190,   192,   193,   194,   196,   197,   199,   199,   201,
-     203,   203,   203,   203,   203,   205,   205,   206,   207,   208,
-     210,   211,   212,   213,   214,   215,   216,   217,   219,   221,
-     222,   224,   224,   226,   227,   228,   230,   231,   233,   233,
-     233,   233,   235
+       0,   151,   151,   152,   153,   154,   156,   158,   159,   161,
+     163,   164,   166,   166,   166,   166,   168,   169,   171,   173,
+     174,   175,   177,   178,   179,   180,   181,   182,   183,   185,
+     187,   189,   191,   192,   193,   195,   196,   198,   198,   200,
+     202,   202,   202,   202,   202,   204,   204,   205,   206,   207,
+     209,   210,   211,   212,   213,   214,   215,   216,   218,   220,
+     221,   223,   223,   225,   226,   227,   229,   230,   232,   232,
+     232,   232,   234
 };
 #endif
 
@@ -1597,78 +1596,78 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 159 "storm.y"
+#line 158 "storm.y"
     { declareVar(); ;}
     break;
 
   case 8:
-#line 160 "storm.y"
+#line 159 "storm.y"
     { declareVar(); ;}
     break;
 
   case 9:
-#line 162 "storm.y"
+#line 161 "storm.y"
     { lastIdName = string(yylval.sval); ;}
     break;
 
   case 11:
-#line 165 "storm.y"
+#line 164 "storm.y"
     { lastArraySize = yylval.ival; validateArraySize(); ;}
     break;
 
   case 12:
-#line 167 "storm.y"
+#line 166 "storm.y"
     { lastReturnType = string(yylval.sval); ;}
     break;
 
   case 13:
-#line 167 "storm.y"
+#line 166 "storm.y"
     { lastFuncName = string(yylval.sval); ;}
     break;
 
   case 14:
-#line 167 "storm.y"
+#line 166 "storm.y"
     { declareFunc(); ;}
     break;
 
   case 15:
-#line 167 "storm.y"
+#line 166 "storm.y"
     { functionExit(); ;}
     break;
 
   case 18:
-#line 172 "storm.y"
+#line 171 "storm.y"
     { declareParam() ;}
     break;
 
   case 39:
-#line 201 "storm.y"
+#line 200 "storm.y"
     { lastType = string(yylval.sval); ;}
     break;
 
   case 44:
-#line 203 "storm.y"
+#line 202 "storm.y"
     { validateType(); ;}
     break;
 
   case 45:
-#line 205 "storm.y"
+#line 204 "storm.y"
     { lastClassName = string(yylval.sval); declareClass(); ;}
     break;
 
   case 61:
-#line 224 "storm.y"
+#line 223 "storm.y"
     { fnCallInit(); ;}
     break;
 
   case 62:
-#line 224 "storm.y"
+#line 223 "storm.y"
     { fnCall(); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1672 "storm.tab.c"
+#line 1671 "storm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1882,7 +1881,7 @@ yyreturn:
 }
 
 
-#line 237 "storm.y"
+#line 236 "storm.y"
 
 
 int main(int argc, char** argv) {

@@ -25,8 +25,8 @@ if                { return IF; }
 else              { return ELSE; }
 return            { return RETURN; }
 class             { return CLASS; }
-[0-9]+\.[0-9]+    { yylval.fval = atof(yytext); return C_FLOAT; }
-[0-9]+            { yylval.ival = atoi(yytext); return C_INT; }
+-?[0-9]+\.[0-9]+    { yylval.fval = atof(yytext); return C_FLOAT; }
+-?[0-9]+            { yylval.ival = atoi(yytext); return C_INT; }
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.sval = strdup(yytext); return ID; }
 !                 { yylval.ival = atoi(yytext); return UN_OP; }
 \<=|>=|&&|==|\|\||\+|\-|\*|\/|\<|\<|\%        { yylval.sval = strdup(yytext); return BIN_OP; }

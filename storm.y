@@ -41,6 +41,7 @@ int lastArraySize;
 vector<Param> params;
 set<string> classes;
 bool inFunction = false;
+bool inClass = false;
 
 void semanticError(string err) {
   cout << "Semantic error: " << err << endl;
@@ -69,6 +70,10 @@ void declareVar() {
 }
 
 void declareFunc() {
+  if (inClass) {
+    lastIdName = lastClassName + "." + lastClassName;
+  }
+
   if (functions.find(lastFuncName) != functions.end()) {
     semanticError("Redefinition of function " + lastFuncName);
   }
@@ -92,11 +97,16 @@ void validateArraySize() {
 }
 
 void declareClass() {
+  inClass = true;
   if (classes.find(lastClassName) != classes.end()) {
     semanticError("Redefinition of class " + lastClassName);
   }
 
   classes.insert(lastClassName);
+}
+
+void exitClass() {
+  inClass = false;
 }
 
 void validateType() {
@@ -236,6 +246,7 @@ arr_access:
 %%
 
 int main(int argc, char** argv) {
+  initOperatorsTypeTable();
   // Open a file to read the input from it
   if (argc < 2) {
     cout << "error: no input file" << endl;
