@@ -11,7 +11,9 @@ PARAMETERS ::= (TYPE ID ARR? (',' TYPE ID ARR?)*)?
 
 BLOCK ::= '{' STATEMENT* '}'
 
-STATEMENT ::= (VAR_DECLR | EXPR ';' | FOR | WHILE | DO_WHILE | IF)
+STATEMENT ::= (VAR_DECLR | EXPR ';' | FOR | WHILE | DO_WHILE | IF | RETURN)
+
+RETURN ::= 'return' EXPR? ';'
 
 FOR ::= 'for' '(' ASSIGN ';' EXPR ';' ASSIGN ')' BLOCK
 

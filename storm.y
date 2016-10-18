@@ -42,6 +42,7 @@ void yyerror(const char *s);
 %token DO
 %token IF
 %token ELSE
+%token RETURN
 %token CLASS
 %token UN_OP
 %token BIN_OP
@@ -77,7 +78,8 @@ statement:
   | for_stm
   | while_stm
   | do_while_stm
-  | if_stm;
+  | if_stm
+  | return_stm;
 for_stm:
   FOR '(' assign ';' expr ';' assign ')' block;
 while_stm:
@@ -88,6 +90,9 @@ if_stm:
   IF '(' expr ')' block else_stm;
 else_stm:
   | ELSE block;
+return_stm:
+  RETURN ';'
+  | RETURN expr ';';
 return_type:
   T_VOID | type;
 type:
@@ -105,7 +110,7 @@ expr:
   | '(' expr ')'
   | literal
   | arr_access
-  | ID { cout << yylval.sval << endl; };
+  | ID;
 assign:
   ID '=' expr;
 operation:

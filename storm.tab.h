@@ -55,9 +55,10 @@
      DO = 271,
      IF = 272,
      ELSE = 273,
-     CLASS = 274,
-     UN_OP = 275,
-     BIN_OP = 276
+     RETURN = 274,
+     CLASS = 275,
+     UN_OP = 276,
+     BIN_OP = 277
    };
 #endif
 
@@ -78,7 +79,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 82 "storm.tab.h"
+#line 83 "storm.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
