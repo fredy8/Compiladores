@@ -43,6 +43,8 @@ void yyerror(const char *s);
 %token IF
 %token ELSE
 %token CLASS
+%token UN_OP
+%token BIN_OP
 
 %%
 // Sintactic variables
@@ -107,12 +109,8 @@ expr:
 assign:
   ID '=' expr;
 operation:
-  unary_operator expr
-  | expr binary_operator expr;
-unary_operator:
-  '!';
-binary_operator:
-  '+' | '-' | '*' | '/' | '<' | '>';
+  UN_OP expr
+  | expr BIN_OP expr;
 fn_call:
   ID '(' arguments ')';
 obj_fn_call:
