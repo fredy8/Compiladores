@@ -13,11 +13,11 @@ int linenum = 1;
 [ \t]             ;
 \n                { linenum++; }
 function          { return FUNCTION; }
-int               { return T_INT; }
-float             { return T_FLOAT; }
-string            { return T_STRING; }
-char              { return T_CHAR; }
-void              { return T_VOID; }
+int               { yylval.sval = strdup(yytext); return T_INT; }
+float             { yylval.sval = strdup(yytext); return T_FLOAT; }
+string            { yylval.sval = strdup(yytext); return T_STRING; }
+char              { yylval.sval = strdup(yytext); return T_CHAR; }
+void              { yylval.sval = strdup(yytext); return T_VOID; }
 for               { return FOR; }
 while             { return WHILE; }
 do                { return DO; }
