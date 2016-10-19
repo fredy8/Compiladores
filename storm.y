@@ -45,7 +45,7 @@ bool inFunction = false;
 bool inClass = false;
 
 void semanticError(string err) {
-  cout << "Semantic error: " << err << endl;
+  cout << "Semantic error (l" << linenum << "): " << err << endl;
   exit(1);
 }
 
