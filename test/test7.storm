@@ -1,0 +1,21 @@
+class Ball {
+  int color;
+  float radius;
+  function float bounce(int times) {
+    return 3.2;
+    if (color < 3) {
+      if (radius < 3) {
+        bounce(1);
+      } else {
+        bounce("abc");
+        color = (2 + radius + 1 ) *
+          7/2 || "abc" % 3;
+      }
+    }
+  }
+}
+
+function int main(int args) {
+  int color;
+  color = 8;
+}
