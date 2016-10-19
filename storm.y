@@ -259,9 +259,10 @@ void initArrAccess() {
 }
 
 void arrAccess() {
+  typeStack.pop(); 
   string type = typeStack.top();
   typeStack.pop(); 
-  typeStack.push(type.substr(type.size()-2));
+  typeStack.push(type.substr(0, type.size()-2));
 }
 
 void operation() {

@@ -376,9 +376,11 @@ void initArrAccess() {
 }
 
 void arrAccess() {
-  string type = typeStack.top();
   typeStack.pop(); 
-  typeStack.push(type.substr(type.size()-2));
+  string type = typeStack.top();
+  cout << type << endl;
+  typeStack.pop(); 
+  typeStack.push(type.substr(0, type.size()-2));
 }
 
 void operation() {
@@ -460,7 +462,7 @@ void yyerror(const char *s);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 326 "storm.y"
+#line 328 "storm.y"
 {
   int ival;
   float fval;
@@ -468,7 +470,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 193 of yacc.c.  */
-#line 472 "storm.tab.c"
+#line 474 "storm.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -481,7 +483,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 485 "storm.tab.c"
+#line 487 "storm.tab.c"
 
 #ifdef short
 # undef short
@@ -795,15 +797,15 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   357,   357,   358,   359,   360,   362,   364,   365,   367,
-     369,   370,   372,   372,   372,   372,   373,   374,   376,   377,
-     379,   381,   382,   383,   385,   386,   387,   388,   389,   390,
-     391,   393,   393,   395,   395,   397,   397,   399,   399,   400,
-     401,   403,   403,   404,   404,   406,   406,   408,   410,   410,
-     410,   410,   410,   412,   412,   413,   414,   415,   417,   418,
-     419,   420,   421,   422,   423,   424,   426,   426,   428,   429,
-     429,   431,   431,   433,   433,   434,   435,   437,   438,   440,
-     440,   440,   440,   442,   442
+       0,   359,   359,   360,   361,   362,   364,   366,   367,   369,
+     371,   372,   374,   374,   374,   374,   375,   376,   378,   379,
+     381,   383,   384,   385,   387,   388,   389,   390,   391,   392,
+     393,   395,   395,   397,   397,   399,   399,   401,   401,   402,
+     403,   405,   405,   406,   406,   408,   408,   410,   412,   412,
+     412,   412,   412,   414,   414,   415,   416,   417,   419,   420,
+     421,   422,   423,   424,   425,   426,   428,   428,   430,   431,
+     431,   433,   433,   435,   435,   436,   437,   439,   440,   442,
+     442,   442,   442,   444,   444
 };
 #endif
 
@@ -1809,193 +1811,193 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 357 "storm.y"
+#line 359 "storm.y"
     { end(); ;}
     break;
 
   case 7:
-#line 364 "storm.y"
+#line 366 "storm.y"
     { declareVar(); ;}
     break;
 
   case 8:
-#line 365 "storm.y"
+#line 367 "storm.y"
     { declareVar(); ;}
     break;
 
   case 9:
-#line 367 "storm.y"
+#line 369 "storm.y"
     { lastIdName = string(yylval.sval); ;}
     break;
 
   case 10:
-#line 369 "storm.y"
+#line 371 "storm.y"
     { typeIsArray = false; ;}
     break;
 
   case 11:
-#line 370 "storm.y"
+#line 372 "storm.y"
     { typeIsArray = true; lastArraySize = yylval.ival; validateArraySize(); ;}
     break;
 
   case 12:
-#line 372 "storm.y"
+#line 374 "storm.y"
     { lastReturnType = string(yylval.sval); ;}
     break;
 
   case 13:
-#line 372 "storm.y"
+#line 374 "storm.y"
     { lastFuncName = string(yylval.sval); ;}
     break;
 
   case 14:
-#line 372 "storm.y"
+#line 374 "storm.y"
     { declareFunc(); ;}
     break;
 
   case 15:
-#line 372 "storm.y"
+#line 374 "storm.y"
     { functionExit(); ;}
     break;
 
   case 20:
-#line 379 "storm.y"
+#line 381 "storm.y"
     { declareParam() ;}
     break;
 
   case 31:
-#line 393 "storm.y"
-    { _conditional(); ;}
-    break;
-
-  case 33:
 #line 395 "storm.y"
     { _conditional(); ;}
     break;
 
-  case 35:
+  case 33:
 #line 397 "storm.y"
     { _conditional(); ;}
     break;
 
-  case 37:
+  case 35:
 #line 399 "storm.y"
     { _conditional(); ;}
     break;
 
+  case 37:
+#line 401 "storm.y"
+    { _conditional(); ;}
+    break;
+
   case 41:
-#line 403 "storm.y"
+#line 405 "storm.y"
     { returnVoid(); ;}
     break;
 
   case 43:
-#line 404 "storm.y"
+#line 406 "storm.y"
     { returnExpr(); ;}
     break;
 
   case 47:
-#line 408 "storm.y"
+#line 410 "storm.y"
     { lastType = string(yylval.sval); ;}
     break;
 
   case 52:
-#line 410 "storm.y"
+#line 412 "storm.y"
     { validateType(); ;}
     break;
 
   case 53:
-#line 412 "storm.y"
+#line 414 "storm.y"
     { declareClass(); ;}
     break;
 
   case 54:
-#line 412 "storm.y"
+#line 414 "storm.y"
     { endClass(); ;}
     break;
 
   case 65:
-#line 424 "storm.y"
+#line 426 "storm.y"
     { varExpr(); ;}
     break;
 
   case 66:
-#line 426 "storm.y"
+#line 428 "storm.y"
     { initAssign(); ;}
     break;
 
   case 67:
-#line 426 "storm.y"
+#line 428 "storm.y"
     { assign(); ;}
     break;
 
   case 69:
-#line 429 "storm.y"
+#line 431 "storm.y"
     { lastOperator = string(yylval.sval); _operator(); ;}
     break;
 
   case 70:
-#line 429 "storm.y"
+#line 431 "storm.y"
     { operation(); ;}
     break;
 
   case 71:
-#line 431 "storm.y"
+#line 433 "storm.y"
     { fnCallInit(); ;}
     break;
 
   case 72:
-#line 431 "storm.y"
+#line 433 "storm.y"
     { fnCall(); ;}
     break;
 
   case 73:
-#line 433 "storm.y"
+#line 435 "storm.y"
     { objFnCallInit() ;}
     break;
 
   case 77:
-#line 437 "storm.y"
+#line 439 "storm.y"
     { argument(); ;}
     break;
 
   case 78:
-#line 438 "storm.y"
+#line 440 "storm.y"
     { argument(); ;}
     break;
 
   case 79:
-#line 440 "storm.y"
+#line 442 "storm.y"
     { literal("int") ;}
     break;
 
   case 80:
-#line 440 "storm.y"
+#line 442 "storm.y"
     { literal("float") ;}
     break;
 
   case 81:
-#line 440 "storm.y"
+#line 442 "storm.y"
     { literal("string") ;}
     break;
 
   case 82:
-#line 440 "storm.y"
+#line 442 "storm.y"
     { literal("char") ;}
     break;
 
   case 83:
-#line 442 "storm.y"
+#line 444 "storm.y"
     { initArrAccess(); ;}
     break;
 
   case 84:
-#line 442 "storm.y"
+#line 444 "storm.y"
     { arrAccess() ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1999 "storm.tab.c"
+#line 2001 "storm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2209,7 +2211,7 @@ yyreturn:
 }
 
 
-#line 444 "storm.y"
+#line 446 "storm.y"
 
 
 int main(int argc, char** argv) {
