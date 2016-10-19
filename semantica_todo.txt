@@ -1,0 +1,2 @@
+checar que una llamada tenga los argumentos de tipo correctos
+
