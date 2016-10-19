@@ -1,5 +1,6 @@
 %{
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <utility>
@@ -175,6 +176,8 @@ var_arr:
 function:
   FUNCTION return_type { lastReturnType = string(yylval.sval); } id { lastFuncName = string(yylval.sval); } '(' parameters ')' { declareFunc(); } block { functionExit(); };
 parameters:
+  | params;
+params:
   parameter
   | parameters ',' parameter;
 parameter:
@@ -246,7 +249,6 @@ arr_access:
 %%
 
 int main(int argc, char** argv) {
-  initOperatorsTypeTable();
   // Open a file to read the input from it
   if (argc < 2) {
     cout << "error: no input file" << endl;
