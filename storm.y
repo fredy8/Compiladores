@@ -8,7 +8,7 @@
 #include <vector>
 #include <set>
 #include <sstream>
-#include "src/cube.h"
+#include "include/cube.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -47,7 +47,7 @@ typedef map<string, Function> FunctionsTable;
 
 FunctionsTable functions;
 SymbolTable globalScopeSymbolTable;
-string lastIdName, lastType, lastFuncName, lastReturnType, lastClassName;
+string lastIdName, lastType, lastFuncName, lastReturnType, lastClassName, lastOperator;
 int lastArraySize;
 vector<Param> params;
 map<string, Class> classes;
@@ -58,6 +58,7 @@ bool typeIsArray;
 bool isObjFnCall = false;
 stack<string> fnCallStack;
 stack<string> typeStack;
+stack<string> operatorStack;
 map<string, int> arraySizes;
 stack<int> fnCallNumArgsStack;
 
@@ -101,7 +102,7 @@ void declareVar() {
 
 void declareFunc() {
   if (inClass) {
-    lastIdName = lastClassName + "." + lastClassName;
+    lastFuncName = lastClassName + "." + lastFuncName;
   }
 
   if (functions.find(lastFuncName) != functions.end()) {
@@ -166,6 +167,8 @@ void fnCallInit() {
     string objType = typeStack.top();
     typeStack.pop();
     lastIdName = objType + "." + lastIdName;
+  } else if (inClass && functions.count(lastClassName + "." + lastIdName)) {
+    lastIdName = lastClassName + "." + lastIdName;
   }
 
   if (functions.find(lastIdName) == functions.end()) {
@@ -222,23 +225,28 @@ void fnCall() {
   fnCallStack.pop();
   int numArgs = fnCallNumArgsStack.top();
   fnCallNumArgsStack.pop();
-  vector<Param> params = functions[fnName].params;
+
+  Function& fn = functions[fnName];
+  vector<Param> params = fn.params;
   int numArgsExpected = params.size();
   if (numArgsExpected != numArgs) {
     stringstream ss;
-    ss << "function " << fnName << " expects " << numArgsExpected << " arguments; found " << numArgs;
+    ss << "function " << fnName << " expects " << numArgsExpected << " argument(s); found " << numArgs;
     semanticError(ss.str());
   }
 
   for (int i = 0; i < numArgs; i++) {
     string argType = typeStack.top();
     typeStack.pop();
-    if (argType != params[i].paramType) {
+    string paramType = params[params.size() - 1 - i].paramType;
+    if (argType != paramType) {
       stringstream ss;
-      ss << "function " << fnName << " expects " << params[i].paramType << " for its parameter #" << (i+1) << "; found " << argType;
+      ss << "function " << fnName << " expects " << paramType << " for its parameter #" << (params.size()-i) << "; found " << argType;
       semanticError(ss.str());
     }
   }
+
+  typeStack.push(fn.returnType);
 }
 
 void literal(string type) {
@@ -257,11 +265,18 @@ void arrAccess() {
 }
 
 void operation() {
-  string t1 = typeStack.top();
-  typeStack.pop();
   string t2 = typeStack.top();
   typeStack.pop();
-  typeStack.push(Cube::getOperationType(t1, t2));
+  string t1 = typeStack.top();
+  typeStack.pop();
+  string op = operatorStack.top();
+  operatorStack.pop();
+  string resultType = Cube::getOperationType(op, t1, t2);
+  if (resultType == "") {
+    semanticError("Invalid operation: " + t1 + " " + op + " " + t2);
+  }
+
+  typeStack.push(resultType);
 }
 
 void varExpr() {
@@ -285,6 +300,24 @@ void returnVoid() {
 
 void argument() {
   fnCallNumArgsStack.top()++;
+}
+
+void _operator() {
+  operatorStack.push(lastOperator);
+}
+
+void _conditional() {
+  string type = typeStack.top();
+  typeStack.pop();
+  if (type != "bool") {
+    semanticError("Expected bool, found " + type);
+  }
+}
+
+void end() {
+  if (functions.count("main") == 0) {
+    semanticError("No main function found.");
+  }
 }
 
 void yyerror(const char *s);
@@ -321,6 +354,7 @@ void yyerror(const char *s);
 %%
 // Sintactic variables
 program:
+  { end(); }
   | var_declr program
   | function program
   | class_declr program;
@@ -356,13 +390,13 @@ statement:
   | if_stm
   | return_stm;
 for_stm:
-  FOR '(' assign ';' expr ';' assign ')' block;
+  FOR '(' assign ';' expr { _conditional(); } ';' assign ')' block;
 while_stm:
-  WHILE '(' expr ')' block;
+  WHILE '(' expr { _conditional(); } ')' block;
 do_while_stm:
-  DO block WHILE '(' expr ')' ';'
+  DO block WHILE '(' expr { _conditional(); } ')' ';'
 if_stm:
-  IF '(' expr ')' block else_stm;
+  IF '(' expr { _conditional(); } ')' block else_stm;
 else_stm:
   | ELSE block;
 return_stm:
@@ -392,7 +426,7 @@ assign:
   id { initAssign(); } '=' expr { assign(); };
 operation:
   UN_OP expr
-  | expr BIN_OP expr { operation(); };
+  | expr BIN_OP { lastOperator = string(yylval.sval); _operator(); } expr { operation(); };
 fn_call:
   id { fnCallInit(); } '(' arguments ')' { fnCall(); };
 obj_fn_call:
