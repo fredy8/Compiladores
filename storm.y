@@ -63,7 +63,7 @@ map<string, int> arraySizes;
 stack<int> fnCallNumArgsStack;
 
 void semanticError(string err) {
-  cout << "Semantic error: " << err << endl;
+  cout << "Semantic error (l" << linenum << "): " << err << endl;
   exit(1);
 }
 
