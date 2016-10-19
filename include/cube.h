@@ -31,7 +31,7 @@ public:
   }
 
 private:
-  int operatorType(std::string oper) {
+  static int operatorType(std::string oper) {
     if (oper == '+' || oper == '-' || oper == '*' || oper == '/')
       return 0;
     if (oper == '%')
