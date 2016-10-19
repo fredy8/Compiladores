@@ -1,5 +1,6 @@
 %{
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <utility>
@@ -7,6 +8,7 @@
 #include <vector>
 #include <set>
 #include <sstream>
+#include "src/cube.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -255,7 +257,11 @@ void arrAccess() {
 }
 
 void operation() {
+  string t1 = typeStack.top();
   typeStack.pop();
+  string t2 = typeStack.top();
+  typeStack.pop();
+  typeStack.push(Cube::getOperationType(t1, t2));
 }
 
 void varExpr() {
@@ -331,6 +337,8 @@ var_arr:
 function:
   FUNCTION return_type { lastReturnType = string(yylval.sval); } id { lastFuncName = string(yylval.sval); } '(' parameters ')' { declareFunc(); } block { functionExit(); };
 parameters:
+  | params;
+params:
   parameter
   | parameters ',' parameter;
 parameter:
@@ -407,7 +415,6 @@ int main(int argc, char** argv) {
   types.insert("char");
   types.insert("bool");
   types.insert("string");
-
   // Open a file to read the input from it
   if (argc < 2) {
     cout << "error: no input file" << endl;

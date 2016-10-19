@@ -29,7 +29,7 @@ class             { return CLASS; }
 -?[0-9]+            { yylval.ival = atoi(yytext); return C_INT; }
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.sval = strdup(yytext); return ID; }
 !                 { yylval.ival = atoi(yytext); return UN_OP; }
-\<=|\>=|&&|==|\|\||\+|\-|\*|\/|\<|\<|\%        { yylval.sval = strdup(yytext); return BIN_OP; }
+\<=|>=|&&|==|\|\||\+|\-|\*|\/|\<|\>|\%        { yylval.sval = strdup(yytext); return BIN_OP; }
 [;,:\{\}=\(\)\.\[\]]    { return yytext[0]; }
 \'[ a-zA-Z0-0(\\n)\.,]\'           { yylval.cval = yytext[1]; return C_CHAR; }
 \"[ a-zA-Z0-9(\\n)\.,]+\" { yylval.sval = strdup(yytext); return C_STRING; }
