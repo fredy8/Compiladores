@@ -6,7 +6,7 @@ public:
       case 0:
         if (type1 == "int" && type2 == "int") 
           return "int";
-        if (type1 == "int" || type1 == "float") && (type2 == "float" || type2 == "int")
+        if ((type1 == "int" || type1 == "float") && (type2 == "float" || type2 == "int"))
           return "float";
         return "";
       case 1:
@@ -14,7 +14,7 @@ public:
           return "int";
         return "";
       case 2:
-        if (type1 == "int" || type1 == "float") && (type2 == "float" || type2 == "int")
+        if ((type1 == "int" || type1 == "float") && (type2 == "float" || type2 == "int"))
           return "bool";
         return "";
       case 3:
