@@ -1,3 +1,5 @@
+#include "cube.h"
+
 string Cube::getOperationType(string oper, string type1, string type2) {
   int operType = operatorType(type);
   switch (operType) {
