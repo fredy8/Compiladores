@@ -1,4 +1,4 @@
 class Cube {
 public:
-  static string getOperationType(string oper, string type1, string type2);
+  static std::string getOperationType(std::string oper, std::string type1, std::string type2);
 };
