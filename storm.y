@@ -423,7 +423,10 @@ expr:
   | arr_access
   | id { varExpr(); };
 assign:
-  id { initAssign(); } '=' expr { assign(); };
+  assignable { initAssign(); } '=' expr { assign(); };
+assignable:
+  id
+  | id '[' expr ']';
 operation:
   UN_OP expr
   | expr BIN_OP { lastOperator = string(yylval.sval); _operator(); } expr { operation(); };
