@@ -32,15 +32,15 @@ public:
 
 private:
   static int operatorType(std::string oper) {
-    if (oper == '+' || oper == '-' || oper == '*' || oper == '/')
+    if (oper == "+" || oper == "-" || oper == "*" || oper == "/")
       return 0;
-    if (oper == '%')
+    if (oper == "%")
       return 1;
-    if (oper == '>' || oper == '<' || oper == '<=' || oper == '>=' || oper == '==')
+    if (oper == ">" || oper == "<" || oper == "<=" || oper == ">=" || oper == "==")
       return 2;
-    if (oper == '&&' || oper == '||')
+    if (oper == "&&" || oper == "||")
       return 3;
-    if (oper == '!')
+    if (oper == "!")
       return 4;
     return -1;
   }
