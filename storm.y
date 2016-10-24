@@ -423,7 +423,7 @@ while_stm:
 do_while_stm:
   DO block WHILE '(' expr { _conditional(); } ')' ';'
 if_stm:
-  IF '(' expr { _conditional(); } ')' block else_stm;
+  IF '(' { cout << "starting if" << endl; } expr { cout << "finished conditional" << endl; _conditional(); } ')' block else_stm;
 else_stm:
   | ELSE block;
 return_stm:
@@ -441,23 +441,23 @@ class_declr_a:
   | var_declr class_declr_a
   | function class_declr_a;
 expr:
-  expr6
+  expr6 { cout << "expression found" << endl; }
   | expr BIN_OP_P6 { lastOperator = string(yylval.sval); _operator(); } expr6 { operation(6); };
 expr6:
   expr5
   | expr6 BIN_OP_P5 { lastOperator = string(yylval.sval); _operator(); } expr5 { operation(5); };
 expr5:
   expr4
-  | expr BIN_OP_P4 { lastOperator = string(yylval.sval); _operator(); } expr4 { operation(4); };
+  | expr5 BIN_OP_P4 { lastOperator = string(yylval.sval); _operator(); } expr4 { operation(4); };
 expr4:
   expr3
-  | expr BIN_OP_P3 { lastOperator = string(yylval.sval); _operator(); } expr3 { operation(3); };
+  | expr4 BIN_OP_P3 { lastOperator = string(yylval.sval); cout << "operator " << lastOperator << " with pri 3" << endl; _operator(); } expr3 { operation(3); };
 expr3:
   expr2
-  | expr BIN_OP_P2 { lastOperator = string(yylval.sval); _operator(); } expr2 { operation(2); };
+  | expr3 BIN_OP_P2 { lastOperator = string(yylval.sval); _operator(); } expr2 { operation(2); };
 expr2:
   expr1
-  | expr BIN_OP_P1 { lastOperator = string(yylval.sval); _operator(); } expr1 { operation(1); };
+  | expr2 BIN_OP_P1 { lastOperator = string(yylval.sval); _operator(); } expr1 { operation(1); };
 expr1:
   expr0
   | UN_OP_P0 { lastOperator = string(yylval.sval); _operator(); } expr0 { operation(0); };
