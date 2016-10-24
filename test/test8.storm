@@ -8,7 +8,7 @@ class Ball {
       if (radius < 3) {
         bounce(1, 3.2);
       } else {
-        color = (2 - bounce(43*2 + 1, 3*0.1) + 1 ) *
+        color[3] = (2 - bounce(43*2 + 1, 3*0.1) + 1 ) *
           7/2 + 5 % 3;
       }
     }
