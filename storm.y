@@ -59,6 +59,7 @@ bool isObjFnCall = false;
 stack<string> fnCallStack;
 stack<string> typeStack;
 stack<string> operatorStack;
+stack<string> arrayAssignStack;
 map<string, int> arraySizes;
 stack<int> fnCallNumArgsStack;
 QuadrupleStore quadStore;
@@ -203,7 +204,6 @@ void objFnCallInit() {
 }
 
 void initAssign() {
-  cout << "initAssign " << getSymbolType(lastIdName) << endl;
   if (getSymbolType(lastIdName) == "") {
     semanticError("Use of undeclared variable: " + lastIdName);
   }
@@ -261,9 +261,15 @@ void initArrAccess() {
 }
 
 void arrAccess() {
+  string indexType = typeStack.top();
+  typeStack.pop(); 
+  if (indexType != "int") {
+    semanticError("Array subscript must be an int; found " + indexType);
+  }
+
   string type = typeStack.top();
   typeStack.pop(); 
-  typeStack.push(type.substr(type.size()-2));
+  typeStack.push(type.substr(0, type.size()-2));
 }
 
 void operation(int operatorPriority) {
@@ -466,8 +472,8 @@ expr0:
 assign:
   assignable { initAssign(); } '=' expr { assign(); };
 assignable:
-  id
-  | id '[' expr ']';
+  id { initAssign(); }
+  | id { initAssign(); } '[' expr ']' { arrAccess(); } ;
 fn_call:
   id { fnCallInit(); } '(' arguments ')' { fnCall(); };
 obj_fn_call:
@@ -480,7 +486,7 @@ args:
 literal:
   C_INT { literal("int") } | C_FLOAT { literal("float") } | C_STRING { literal("string") } | C_CHAR { literal("char") };
 arr_access:
-  id { initArrAccess(); } '[' expr ']' { arrAccess() };
+  id { initArrAccess(); } '[' expr ']' { arrAccess(); };
 
 %%
 
