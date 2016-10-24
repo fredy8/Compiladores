@@ -419,11 +419,11 @@ statement:
 for_stm:
   FOR '(' assign ';' expr { _conditional(); } ';' assign ')' block;
 while_stm:
-  WHILE '(' expr { _conditional(); } ')' block;
+  WHILE { quadStore.whileConditionStart(); } '(' expr { quadStore.whileBlockStart(); } ')' block { quadStore.whileEnd(); };
 do_while_stm:
-  DO block WHILE '(' expr { _conditional(); } ')' ';'
+  DO { quadStore.doWhileStart(); } block WHILE '(' expr ')' ';' { quadStore.doWhileEnd(); };
 if_stm:
-  IF '(' expr { _conditional(); } ')' block else_stm;
+  IF '(' expr { quadStore.ifStart(); } ')' block { quadStore.ifBlockEnd(); } else_stm { quadStore.ifEnd(); };
 else_stm:
   | ELSE block;
 return_stm:

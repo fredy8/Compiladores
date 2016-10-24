@@ -10,6 +10,7 @@ private:
   std::stack<std::string> typeStack;
   std::stack<std::string> operandStack;
   std::stack<std::string> operatorStack;
+  std::stack<int> jumpStack;
   int counter = 0;
   int tempCounter = 0;
   int constCounter = 0;
@@ -74,6 +75,85 @@ public:
     }
     operatorStack.pop();
   }
+  void ifStart() {
+    // Get information on the conditional and validate it's a bool
+    std::string type = typeStack.top();
+    typeStack.pop();
+    std::string condition = operandStack.top();
+    operandStack.pop();
+    if (type != "bool") {
+      semanticError("Expected bool on if statement");
+    }
+    // Generate GOTOF quadruple and store the counter to modify it later
+    jumpStack.push(counter);
+    quads.push_back(Quadruple("GOTOF", condition, "", ""));
+    counter++;
+  }
+  void ifBlockEnd() {
+    // Modify if statement quadruple to jump to the end of block
+    int ifQuad = jumpStack.top();
+    jumpStack.pop();
+    quads[ifQuad].d = toString(counter + 1);
+    // Add GOTO jump to the end of the if statement and store the counter
+    jumpStack.push(counter);
+    quads.push_back(Quadruple("GOTO", "", "", ""));
+    counter++;
+  }
+  void ifEnd() {
+    // Modify end of if block quadruple to jump to this point
+    int endIfQuad = jumpStack.top();
+    jumpStack.pop();
+    quads[endIfQuad].d = toString(counter);
+  }
+  void whileConditionStart() {
+    // Store the beginning of the expression evaluation to jump to
+    jumpStack.push(counter);
+  }
+  void whileBlockStart() {
+    // Get information on the conditional and validate it's a bool
+    std::string type = typeStack.top();
+    typeStack.pop();
+    std::string condition = operandStack.top();
+    operandStack.pop();
+    if (type != "bool") {
+      semanticError("Expected bool on while statement");
+    }
+    // Generate GOTOF quadruple and store the counter to modify it later
+    jumpStack.push(counter);
+    quads.push_back(Quadruple("GOTOF", condition, "", ""));
+    counter++;
+  }
+  void whileEnd() {
+    int gotof = jumpStack.top();
+    jumpStack.pop();
+    int jump = jumpStack.top();
+    jumpStack.pop();
+    // Go back to where the condition is evaluated
+    quads.push_back(Quadruple("GOTO", "", "", toString(jump)));
+    counter++;
+    // Modify quadruple to jump to when false
+    quads[gotof].d = toString(counter);
+    std::cout << "Ending while on " << counter << ", with jump on " << gotof << std::endl;
+  }
+  void doWhileStart() {
+    // Push to jump stack the start of the do while block
+    jumpStack.push(counter);
+  }
+  void doWhileEnd() {
+    // Get information on the conditional and validate it's a bool
+    std::string type = typeStack.top();
+    typeStack.pop();
+    std::string condition = operandStack.top();
+    operandStack.pop();
+    if (type != "bool") {
+      semanticError("Expected bool on do while statement");
+    }
+    // Generate GOTOV quadruple
+    int jump = jumpStack.top();
+    jumpStack.pop();
+    quads.push_back(Quadruple("GOTOV", condition, "", toString(jump)));
+    counter++;
+  }
   void print() {
     for (int i = 0; i < quads.size(); i++) {
       std::cout << "[" << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
@@ -111,5 +191,10 @@ private:
   void semanticError(std::string err) {
     std::cout << "Semantic error: " << err << std::endl;
     exit(1);
+  }
+  std::string toString(int num) {
+    std::stringstream ss;
+    ss << num;
+    return ss.str();
   }
 };

@@ -1,7 +1,7 @@
 function int main() {
   int a, b, c, d, e;
-  a = c*d;
-  if (d + a*b/c < d+c) {
-    e = 4*c;
-  }
+  do {
+    a = a - c;
+  } while (a < b);
+  b = c + d;
 }
