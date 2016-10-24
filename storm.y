@@ -8,7 +8,7 @@
 #include <vector>
 #include <set>
 #include <sstream>
-#include "include/cube.h"
+#include "include/quadruple_store.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -61,6 +61,7 @@ stack<string> typeStack;
 stack<string> operatorStack;
 map<string, int> arraySizes;
 stack<int> fnCallNumArgsStack;
+QuadrupleStore quadStore;
 
 void semanticError(string err) {
   cout << "Semantic error (l" << linenum << "): " << err << endl;
@@ -252,6 +253,7 @@ void fnCall() {
 void literal(string type) {
   cout << "found literal: " << type << endl;
   typeStack.push(type);
+  quadStore.pushConstant(type);
 }
 
 void initArrAccess() {
@@ -264,7 +266,9 @@ void arrAccess() {
   typeStack.push(type.substr(type.size()-2));
 }
 
-void operation() {
+void operation(int operatorPriority) {
+  quadStore.popOperator(operatorPriority);
+
   string t2 = typeStack.top();
   typeStack.pop();
   string t1 = typeStack.top();
@@ -282,6 +286,7 @@ void operation() {
 void varExpr() {
   cout << "found var expr: " << lastIdName << endl;
   typeStack.push(getSymbolType(lastIdName));
+  quadStore.pushOperand(lastIdName, getSymbolType(lastIdName));
 }
 
 void returnExpr() {
@@ -303,7 +308,16 @@ void argument() {
 }
 
 void _operator() {
+  quadStore.pushOperator(lastOperator);
   operatorStack.push(lastOperator);
+}
+
+void openParenthesis() {
+  quadStore.pushParenthesis();
+}
+
+void closeParenthesis() {
+  quadStore.popParenthesis();
 }
 
 void _conditional() {
@@ -318,6 +332,8 @@ void end() {
   if (functions.count("main") == 0) {
     semanticError("No main function found.");
   }
+  cout << " === QUADRUPLES === " << endl;
+  quadStore.print();
 }
 
 void yyerror(const char *s);
@@ -348,8 +364,13 @@ void yyerror(const char *s);
 %token ELSE
 %token RETURN
 %token CLASS
-%token UN_OP
-%token BIN_OP
+%token UN_OP_P0
+%token BIN_OP_P1
+%token BIN_OP_P2
+%token BIN_OP_P3
+%token BIN_OP_P4
+%token BIN_OP_P5
+%token BIN_OP_P6
 
 %%
 // Sintactic variables
@@ -414,11 +435,31 @@ class_declr_a:
   | var_declr class_declr_a
   | function class_declr_a;
 expr:
-  assign
+  expr6
+  | expr BIN_OP_P6 { lastOperator = string(yylval.sval); _operator(); } expr6 { operation(6); };
+expr6:
+  expr5
+  | expr6 BIN_OP_P5 { lastOperator = string(yylval.sval); _operator(); } expr5 { operation(5); };
+expr5:
+  expr4
+  | expr BIN_OP_P4 { lastOperator = string(yylval.sval); _operator(); } expr4 { operation(4); };
+expr4:
+  expr3
+  | expr BIN_OP_P3 { lastOperator = string(yylval.sval); _operator(); } expr3 { operation(3); };
+expr3:
+  expr2
+  | expr BIN_OP_P2 { lastOperator = string(yylval.sval); _operator(); } expr2 { operation(2); };
+expr2:
+  expr1
+  | expr BIN_OP_P1 { lastOperator = string(yylval.sval); _operator(); } expr1 { operation(1); };
+expr1:
+  expr0
+  | UN_OP_P0 { lastOperator = string(yylval.sval); _operator(); } expr0 { operation(0); };
+expr0:
+  '(' { openParenthesis(); } expr ')' { closeParenthesis(); }
+  | assign
   | fn_call
   | obj_fn_call
-  | operation
-  | '(' expr ')'
   | literal
   | arr_access
   | id { varExpr(); };
@@ -427,9 +468,6 @@ assign:
 assignable:
   id
   | id '[' expr ']';
-operation:
-  UN_OP expr
-  | expr BIN_OP { lastOperator = string(yylval.sval); _operator(); } expr { operation(); };
 fn_call:
   id { fnCallInit(); } '(' arguments ')' { fnCall(); };
 obj_fn_call:

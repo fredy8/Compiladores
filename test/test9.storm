@@ -1,0 +1,8 @@
+function int main() {
+  int a, b, c, d, e;
+  a = b + c;
+  if (a + b*c/d > c + d
+  ) {
+    e = 4*c;
+  }
+}
