@@ -209,6 +209,7 @@ void initAssign() {
   }
 
   typeStack.push(getSymbolType(lastIdName));
+  quadStore.pushOperand(lastIdName, getSymbolType(lastIdName));
 }
 
 void assign() {
@@ -219,6 +220,8 @@ void assign() {
   if (varType != typeAssigned) {
     semanticError("Expected " + varType + " found " + typeAssigned);
   }
+
+  quadStore.assignEnd();
 }
 
 void fnCall() {
@@ -471,7 +474,7 @@ expr0:
   | arr_access
   | id { varExpr(); };
 assign:
-  assignable { initAssign(); } '=' expr { assign(); };
+  assignable '=' expr { assign(); };
 assignable:
   id { initAssign(); }
   | id { initAssign(); } '[' expr ']' { arrAccess(); } ;

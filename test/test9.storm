@@ -1,7 +1,21 @@
 function int main() {
   int a, b, c, d, e;
-  do {
-    a = a - c;
-  } while (a < b);
+  b = 10;
+  for (a = 0; a < b; a = a + 1) {
+    c = c + d*e;
+  }
   b = c + d;
+  if (a < b || !(b == c)) {
+    c = c + 1;
+    d = e*2;
+  }
+  do {
+    a = a + b;
+  } while (a < d*c);
+  e = d*c + a*b;
+  while (a > b && c > d) {
+    a = a - c;
+    c = c - a;
+  }
+  d = d*d;
 }

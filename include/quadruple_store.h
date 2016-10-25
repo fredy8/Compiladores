@@ -208,9 +208,22 @@ public:
     jumpStack.pop();
     quads[jump1].d = toString(counter);
   }
+  void assignEnd() {
+    std::string expression = operandStack.top();
+    operandStack.pop();
+    std::string expressionType = typeStack.top();
+    typeStack.top();
+    std::string assignable = operandStack.top();
+    std::string assignableType = typeStack.top();
+    if (expressionType != assignableType) {
+      semanticError("Expected " + assignableType + " found " + expressionType);
+    }
+    quads.push_back(Quadruple("=", expression, "", assignable));
+    counter++;
+  }
   void print() {
     for (int i = 0; i < quads.size(); i++) {
-      std::cout << "[" << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
+      std::cout << i << ": [ " << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
     }
   }
 private:
