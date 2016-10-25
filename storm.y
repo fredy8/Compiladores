@@ -417,7 +417,8 @@ statement:
   | if_stm
   | return_stm;
 for_stm:
-  FOR '(' assign ';' expr { _conditional(); } ';' assign ')' block;
+  FOR '(' assign ';' { quadStore.forConditionStart(); } expr { quadStore.forConditionEnd(); } ';' 
+    assign { quadStore.forStart(); } ')' block { quadStore.forEnd(); };
 while_stm:
   WHILE { quadStore.whileConditionStart(); } '(' expr { quadStore.whileBlockStart(); } ')' block { quadStore.whileEnd(); };
 do_while_stm:

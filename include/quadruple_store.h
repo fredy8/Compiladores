@@ -154,6 +154,52 @@ public:
     quads.push_back(Quadruple("GOTOV", condition, "", toString(jump)));
     counter++;
   }
+  void forConditionStart() {
+    // Push to jump stack the beginning of the condition
+    jumpStack.push(counter);
+  }
+  void forConditionEnd() {
+    // Generate GOTOF quadruple
+    jumpStack.push(counter);
+    quads.push_back(Quadruple("GOTOF", condition, "", ""));
+    counter++;
+    // Jump to where the block starts (skip third element)
+    jumpStack.push(counter);
+    quads.push_back(Quadruple("GOTO", condition, "", ""));
+    counter++;
+    // Store the start of the third element of the for
+    jumpStack.push(counter);
+  }
+  void forStart() {
+    // Pop elements from the jump stack
+    int jump4 = jumpStack.top();
+    jumpStack.pop();
+    int jump3 = jumpStack.top();
+    jumpStack.pop();
+    int jump2 = jumpStack.top();
+    jumpStack.pop();
+    int jump1 = jumpStack.top();
+    jumpStack.pop();
+    // Jump back to where the condition evaluation starts
+    quads.push_back(Quadruple("GOTO", "", "", toString(jump1)));
+    counter++;
+    // Jump here when the condition is evaluated to true (code inside for)
+    quads[jump3].d = toString(counter);
+    // Put unused elements back into the stack
+    jumpStack.push(jump2);
+    jumpStack.push(jump4);
+  }
+  void forEnd() {
+    // Jump back to the third element of the for
+    int jump2 = jumpStack.top();
+    jumpStack.pop();
+    quads.push_back(Quadruple("GOTO", "", "", toString(jump2)));
+    counter++;
+    // Jump here when the condition is false and we exit the loop
+    int jump1 = jumpStack.top();
+    jumpStack.pop();
+    quads[jump1].d = toString(counter);
+  }
   void print() {
     for (int i = 0; i < quads.size(); i++) {
       std::cout << "[" << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
