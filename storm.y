@@ -500,6 +500,11 @@ int main(int argc, char** argv) {
   types.insert("char");
   types.insert("bool");
   types.insert("string");
+  
+  vector<Param> params{ Param("arg", "string") }
+  functions["print"] = Function("print", "void", params);
+  functions["read"] = Function("read", "string", vector<Param>());
+
   // Open a file to read the input from it
   if (argc < 2) {
     cout << "error: no input file" << endl;
