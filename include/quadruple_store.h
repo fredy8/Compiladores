@@ -159,6 +159,14 @@ public:
     jumpStack.push(counter);
   }
   void forConditionEnd() {
+    // Get information on the conditional and validate it's a bool
+    std::string type = typeStack.top();
+    typeStack.pop();
+    std::string condition = operandStack.top();
+    operandStack.pop();
+    if (type != "bool") {
+      semanticError("Expected bool on do while statement");
+    }
     // Generate GOTOF quadruple
     jumpStack.push(counter);
     quads.push_back(Quadruple("GOTOF", condition, "", ""));
