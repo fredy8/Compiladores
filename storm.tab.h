@@ -57,8 +57,13 @@
      ELSE = 273,
      RETURN = 274,
      CLASS = 275,
-     UN_OP = 276,
-     BIN_OP = 277
+     UN_OP_P0 = 276,
+     BIN_OP_P1 = 277,
+     BIN_OP_P2 = 278,
+     BIN_OP_P3 = 279,
+     BIN_OP_P4 = 280,
+     BIN_OP_P5 = 281,
+     BIN_OP_P6 = 282
    };
 #endif
 /* Tokens.  */
@@ -80,15 +85,20 @@
 #define ELSE 273
 #define RETURN 274
 #define CLASS 275
-#define UN_OP 276
-#define BIN_OP 277
+#define UN_OP_P0 276
+#define BIN_OP_P1 277
+#define BIN_OP_P2 278
+#define BIN_OP_P3 279
+#define BIN_OP_P4 280
+#define BIN_OP_P5 281
+#define BIN_OP_P6 282
 
 
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 332 "storm.y"
+#line 27 "storm.y"
 {
   int ival;
   float fval;
@@ -96,7 +106,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 1529 of yacc.c.  */
-#line 100 "storm.tab.h"
+#line 110 "storm.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1

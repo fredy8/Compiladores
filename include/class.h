@@ -1,7 +1,7 @@
 #ifndef CLASS_H_
 #define CLASS_H_
 
-#include "include/symbol_table.h"
+#include "symbol_table.h"
 
 struct Class {
  public:

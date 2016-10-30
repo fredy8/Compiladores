@@ -1,3 +1,5 @@
+all: storm.tab.c storm.tab.h lex.yy.c storm
+
 storm.tab.c storm.tab.h: storm.y
 	bison -d storm.y
 lex.yy.c: storm.l storm.tab.h

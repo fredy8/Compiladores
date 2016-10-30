@@ -1,6 +1,13 @@
 #ifndef FUNCTION_H_
 #define FUNCTION_H_
 
+#include <string>
+#include <vector>
+#include <map>
+#include "symbol_table.h" 
+
+using namespace std;
+
 struct Param {
  public:
   string paramName, paramType;
@@ -13,6 +20,7 @@ struct Function {
   string returnType;
   vector<Param> params;
   SymbolTable localSymbolTable;
+  string location;
   Function(string name, string returnType, vector<Param> params) : params(params), returnType(returnType), name(name) {}
   Function() {}
 };
