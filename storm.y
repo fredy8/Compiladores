@@ -9,6 +9,8 @@
 #include <set>
 #include <sstream>
 #include "include/quadruple_store.h"
+#include "include/function.h"
+#include "include/class.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -17,62 +19,90 @@ extern "C" int yyparse();
 extern "C" FILE *yyin;
 extern int linenum;
 
-typedef map<string, string> SymbolTable;
-
-struct Param {
- public:
-  string paramName, paramType;
-  Param(string paramName, string paramType) : paramName(paramName), paramType(paramType) {}
-};
-
-struct Function {
- public:
-  string name;
-  string returnType;
-  vector<Param> params;
-  SymbolTable localSymbolTable;
-  Function(string name, string returnType, vector<Param> params) : params(params), returnType(returnType), name(name) {}
-  Function() {}
-};
-
-struct Class {
- public:
-  string name;
-  SymbolTable classSymbolTable;
-  Class(string name) {}
-  Class() {}
-};
-
-typedef map<string, Function> FunctionsTable;
-
+// maps the name of a function to a function object
 FunctionsTable functions;
+
+// symbol table for global variables
 SymbolTable globalScopeSymbolTable;
-string lastIdName, lastType, lastFuncName, lastReturnType, lastClassName, lastOperator;
+
+// the most recent identifier read
+string lastIdName;
+
+// the most recent type read
+string lastType;
+
+// the most recent function name read
+string lastFuncName;
+
+// the most recent return type read
+string lastReturnType;
+
+// the most recent class name read
+string lastClassName;
+
+// the most recent operator read
+string lastOperator;
+
+// the most recent array size read
 int lastArraySize;
+
+// the list of params of the most recent function read
 vector<Param> params;
+
+// maps the name of a class to the class objects
 map<string, Class> classes;
+
+// the defined types, including primitives
 set<string> types;
+
+// true if currently inside a function
 bool inFunction = false;
-bool inClass = false;
-bool typeIsArray;
-bool isObjFnCall = false;
+
+// true if currently inside a class
+inClass = false;
+
+// true if the fn call is a method
+isObjFnCall = false;
+
+// true if the type is an array type
+typeIsArray = false;
+
+// the stack of the functions beign called.
+// When nested calls are made, this is necessary:
+// e.g. foo(bar())
 stack<string> fnCallStack;
+
+// the type stack
 stack<string> typeStack;
+
+// the operator stack
 stack<string> operatorStack;
+
+// 
 stack<string> arrayAssignStack;
-map<string, int> arraySizes;
+
+// contains the number of arguments supplied when calling a function
 stack<int> fnCallNumArgsStack;
+
+// maps the name of a variable of type array to its array size
+map<string, int> arraySizes;
+
 QuadrupleStore quadStore;
 
+// Outputs a semantic error and exits
 void semanticError(string err) {
   cout << "Semantic error (l" << linenum << "): " << err << endl;
   exit(1);
 }
 
+// Called after reading a parameter from a function
 void declareParam() {
   params.push_back(Param(lastIdName, lastType));
 }
 
+// called after reading a variable declaration
+// stores the variable in the corresponding symbol table and
+// checks for redefinitions
 void declareVar() {
   SymbolTable* table = &globalScopeSymbolTable;
   if (inFunction) {
@@ -102,6 +132,7 @@ void declareVar() {
   cout << "var declared: " << lastIdName << endl;
 }
 
+// read after reading the signature of a function
 void declareFunc() {
   if (inClass) {
     lastFuncName = lastClassName + "." + lastFuncName;
@@ -125,12 +156,15 @@ void declareFunc() {
   } 
 }
 
+// check that an array size supplied is valid
+// called after reading an array size
 void validateArraySize() {
   if (lastArraySize <= 0) {
     semanticError("Expected array size greater than 0.");
   }
 }
 
+// called after reading the name of a class
 void declareClass() {
   inClass = true;
   lastClassName = lastIdName;
@@ -146,24 +180,27 @@ void declareClass() {
   cout << "class declared: " << lastIdName << endl;
 }
 
+// called when finishing reading a class
 void endClass() {
   inClass = false;
 }
 
-void exitClass() {
-  inClass = false;
-}
-
+// called after reading a type
+// checks that the type exists
 void validateType() {
   if (classes.count(lastIdName) == 0 && types.count(lastIdName) == 0) {
     semanticError("Undefined type: " + lastIdName);
   }
 }
 
+// called when exiting a function declaration
 void functionExit() {
   inFunction = false;
 }
 
+// called after reading the function name of a function call
+// e.g. foo(1, "abc")
+// ~~~~~~~~^~~~~~~~~
 void fnCallInit() {
   if (isObjFnCall) {
     string objType = typeStack.top();
@@ -182,6 +219,8 @@ void fnCallInit() {
   isObjFnCall = false;
 }
 
+// returns the type of a variable
+// first check global score, then function scope, then class scope
 string getSymbolType(string varName) {
   if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
     return globalScopeSymbolTable[varName];
@@ -198,11 +237,13 @@ string getSymbolType(string varName) {
   return "";
 }
 
+// called after reading the function name of a method call
 void objFnCallInit() {
   isObjFnCall = true;
   typeStack.push(getSymbolType(lastIdName));
 }
 
+// called after reading the name of a variable in an identifier
 void initAssign() {
   if (getSymbolType(lastIdName) == "") {
     semanticError("Use of undeclared variable: " + lastIdName);
@@ -212,6 +253,7 @@ void initAssign() {
   quadStore.pushOperand(lastIdName, getSymbolType(lastIdName));
 }
 
+// called after reading the right hand expression of an assignment
 void assign() {
   string typeAssigned = typeStack.top();
   typeStack.pop(); 
@@ -224,6 +266,9 @@ void assign() {
   quadStore.assignEnd();
 }
 
+// called after calling a function
+// foo(12, "abc")
+// ~~~~~~~~~~~~~^~~
 void fnCall() {
   string fnName = fnCallStack.top();
   fnCallStack.pop();
@@ -253,16 +298,19 @@ void fnCall() {
   typeStack.push(fn.returnType);
 }
 
+// called after reading a literal
 void literal(string type) {
   cout << "found literal: " << type << endl;
   typeStack.push(type);
   quadStore.pushConstant(type);
 }
 
+// called after reading the variable name of an array type when accessing an array
 void initArrAccess() {
   typeStack.push(getSymbolType(lastIdName));
 }
 
+// called after reading an array access.
 void arrAccess() {
   string indexType = typeStack.top();
   typeStack.pop(); 
@@ -275,6 +323,7 @@ void arrAccess() {
   typeStack.push(type.substr(0, type.size()-2));
 }
 
+// called after reading the last expression of an operation
 void operation(int operatorPriority) {
   quadStore.popOperator(operatorPriority);
 
@@ -292,12 +341,14 @@ void operation(int operatorPriority) {
   typeStack.push(resultType);
 }
 
+// called after reading an identifier used as an expression
 void varExpr() {
   cout << "found var expr: " << lastIdName << endl;
   typeStack.push(getSymbolType(lastIdName));
   quadStore.pushOperand(lastIdName, getSymbolType(lastIdName));
 }
 
+// called after reading a return expression
 void returnExpr() {
   string retType = typeStack.top();
   typeStack.pop();
@@ -307,36 +358,34 @@ void returnExpr() {
   }
 }
 
+// called after reading a return void expression
 void returnVoid() {
   typeStack.push("void");
   returnExpr();
 }
 
+// called after reading an argument in a functino call
 void argument() {
   fnCallNumArgsStack.top()++;
 }
 
+// called after reading an operator
 void _operator() {
   quadStore.pushOperator(lastOperator);
   operatorStack.push(lastOperator);
 }
 
+// called after reading an open parenthesis enclosing an expression
 void openParenthesis() {
   quadStore.pushParenthesis();
 }
 
+// called after reading an open parenthesis enclosing an expression
 void closeParenthesis() {
   quadStore.popParenthesis();
 }
 
-void _conditional() {
-  string type = typeStack.top();
-  typeStack.pop();
-  if (type != "bool") {
-    semanticError("Expected bool, found " + type);
-  }
-}
-
+// called after reading everything
 void end() {
   if (functions.count("main") == 0) {
     semanticError("No main function found.");
