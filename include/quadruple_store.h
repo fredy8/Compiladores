@@ -7,6 +7,7 @@
 #include "function.h"
 #include "class.h"
 #include "symbol_table.h"
+#include "memory_map.h"
 
 class QuadrupleStore {
 public:
