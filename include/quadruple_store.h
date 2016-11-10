@@ -585,7 +585,10 @@ public:
     quads.emplace_back("PUSH", operandStack.top(), "", "");
     counter++;
     operandStack.pop();
-    quads.emplace_back("RETURN", "", "", "");
+    string tmp = getTemporalVariable();
+    quads.emplace_back("POP", tmp, "", "");
+    counter++;
+    quads.emplace_back("GOTO", tmp, "", "");
     counter++;
   }
   // called after reading a return void expression
