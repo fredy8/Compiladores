@@ -908,7 +908,7 @@ YY_RULE_SETUP
 case 25:
 YY_RULE_SETUP
 #line 37 "storm.l"
-{ yylval.ival = atoi(yytext); return UN_OP_P0; }
+{ yylval.sval = strdup(yytext); return UN_OP_P0; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP

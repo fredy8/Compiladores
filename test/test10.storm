@@ -1,0 +1,6 @@
+function void bounce(int a, float b) {
+}
+
+function int main(int args) {
+  bounce(3+1, 2.1*3);
+}

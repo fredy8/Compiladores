@@ -9,6 +9,10 @@
 #include "symbol_table.h"
 #include "memory_map.h"
 
+const bool DEBUG = false;
+
+using namespace std;
+
 class QuadrupleStore {
 public:
   std::vector<Quadruple> quads;
@@ -60,6 +64,27 @@ public:
   // maps the name of a variable of type array to its array size
   map<string, int> arraySizes;
 public:
+  void printOperandStack() {
+    stack<string> copy = operandStack;
+    cout << "OPERAND STACK" << endl;
+    while(!copy.empty()) {
+      cout << copy.top() << endl;
+      copy.pop();
+    }
+    cout << "----------------" << endl;
+  }
+  void debug(string message) {
+    cout << message << endl;
+    if (DEBUG) {
+      cout << "c: continue\no: view operand stack" << endl;
+      string cmd;
+      while(cin >> cmd) {
+        if (cmd == "c") break;
+        if (cmd == "o") printOperandStack();
+      }
+      cout << endl << endl;
+    }
+  }
   void pushOperand(std::string operand, std::string type) {
     operandStack.push(operand);
     typeStack.push(type);
@@ -178,7 +203,9 @@ public:
     counter++;
     // Modify quadruple to jump to when false
     quads[gotof].d = toString(counter);
-    std::cout << "Ending while on " << counter << ", with jump on " << gotof << std::endl;
+    stringstream ss;
+    ss << "Ending while on " << counter << ", with jump on " << gotof << endl;
+    debug(ss.str());
   }
   void doWhileStart() {
     // Push to jump stack the start of the do while block
@@ -299,7 +326,9 @@ public:
     }
 
     table->operator[](lastIdName) = lastType;
-    cout << "var declared: " << lastIdName << endl;
+    stringstream ss;
+    ss << "var declared: " << lastIdName << endl;
+    debug(ss.str());
   }
   // read after reading the signature of a function
   void declareFunc() {
@@ -311,19 +340,24 @@ public:
       semanticError("Redefinition of function " + lastFuncName);
     }
 
-    Function fn = Function(lastFuncName, lastReturnType, params);
-    fn.location = toString(counter);
+    Function fn = Function(lastFuncName, lastReturnType, params, counter);
     functions[lastFuncName] = fn;
 
-    for (Param parm : params) {
-      quads.emplace_back("POP", getTemporalVariable(), "", "");
+    for (Param param : params) {
+      quads.emplace_back("POP", param.paramName, "", "");
       counter++;
     }
 
     params.clear();
     inFunction = true;
 
-    cout << "function declared: " << lastFuncName << endl;
+    stringstream ss;
+    ss << "function declared: " << lastFuncName << endl;
+    debug(ss.str());
+
+    if (lastFuncName == "main") {
+      quads[0].b = toString(counter);
+    }
 
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
@@ -353,7 +387,9 @@ public:
     }
 
     classes[lastIdName] = Class(lastIdName);
-    cout << "class declared: " << lastIdName << endl;
+    stringstream ss;
+    ss << "class declared: " << lastIdName << endl;
+    debug(ss.str());
   }
 
   // called when finishing reading a class
@@ -390,6 +426,10 @@ public:
       semanticError("Use of undeclared function " + lastIdName);
     }
 
+    stringstream ss;
+    ss << "function call init: " << lastIdName << endl;
+    debug(ss.str());
+
     fnCallStack.push(lastIdName);
     fnCallNumArgsStack.push(0);
     isObjFnCall = false;
@@ -425,12 +465,19 @@ public:
       semanticError("Use of undeclared variable: " + lastIdName);
     }
 
+    stringstream ss;
+    ss << "found assignable: " << lastIdName << endl;
+    debug(ss.str());
+
     typeStack.push(getSymbolType(lastIdName));
     pushOperand(lastIdName, getSymbolType(lastIdName));
   }
 
   // called after reading the right hand expression of an assignment
-  void assign() {
+  void assign() { 
+    stringstream ss;
+    ss << "found assignment" << endl;
+    debug(ss.str());
     string typeAssigned = typeStack.top();
     typeStack.pop(); 
     string varType = typeStack.top();
@@ -444,8 +491,11 @@ public:
   // called after calling a function
   // foo(12, "abc")
   // ~~~~~~~~~~~~~^~~
-  void fnCall() {
+  void fnCall() { 
     string fnName = fnCallStack.top();
+    stringstream ss;
+    ss << "function call ended: " << fnName << endl;
+    debug(ss.str());
     fnCallStack.pop();
     int numArgs = fnCallNumArgsStack.top();
     fnCallNumArgsStack.pop();
@@ -456,7 +506,14 @@ public:
       operandStack.pop();
     }
 
+
+    quads.emplace_back("PUSH", toString(counter+2), "", "");
+    counter++;
+
     Function& fn = functions[fnName];
+    quads.emplace_back("GOTO", toString(fn.location), "", "");
+    counter++;
+
     vector<Param> params = fn.params;
     int numArgsExpected = params.size();
     if (numArgsExpected != numArgs) {
@@ -480,7 +537,9 @@ public:
   }
   // called after reading a literal
   void literal(string type) {
-    cout << "found literal: " << type << endl;
+    stringstream ss;
+    ss << "found literal: " << type << endl;
+    debug(ss.str());
     typeStack.push(type);
     pushConstant(type);
   }
@@ -499,6 +558,9 @@ public:
     string type = typeStack.top();
     typeStack.pop(); 
     typeStack.push(type.substr(0, type.size()-2));
+    stringstream ss;
+    ss << "found array access" << type << endl;
+    debug(ss.str());
   }
   // called after reading the last expression of an operation
   void operation(int operatorPriority) {
@@ -506,7 +568,9 @@ public:
   }
   // called after reading an identifier used as an expression
   void varExpr() {
-    cout << "found var expr: " << lastIdName << endl;
+    stringstream ss;
+    ss << "found var expr: " << lastIdName << endl;
+    debug(ss.str());
     typeStack.push(getSymbolType(lastIdName));
     pushOperand(lastIdName, getSymbolType(lastIdName));
   }
@@ -518,18 +582,20 @@ public:
     if (functions[lastFuncName].returnType != retType) {
       semanticError("function " + fnName + " expects " + functions[lastFuncName].returnType + " as return type; found " + retType);
     }
+    quads.emplace_back("PUSH", operandStack.top(), "", "");
+    counter++;
+    operandStack.pop();
+    quads.emplace_back("RETURN", "", "", "");
+    counter++;
   }
   // called after reading a return void expression
   void returnVoid() {
     typeStack.push("void");
     returnExpr();
   }
-  // called after reading an argument in a functino call
+  // called after reading an argument in a function call
   void argument() {
     fnCallNumArgsStack.top()++;
-    quads.emplace_back("PUSH", operandStack.top(), getTemporalVariable(), "");
-    counter++;
-    operandStack.pop();
   }
   // called after reading an operator
   void _operator() {
@@ -555,6 +621,20 @@ public:
     for (int i = 0; i < quads.size(); i++) {
       std::cout << i << ": [ " << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
     }
+  }
+  void begin() {
+    types.insert("int");
+    types.insert("float");
+    types.insert("char");
+    types.insert("bool");
+    types.insert("string");
+    
+    vector<Param> params{ Param("arg", "string") };
+    functions["print"] = Function("print", "void", params);
+    functions["read"] = Function("read", "string", vector<Param>());
+
+    quads.emplace_back("GOTO", "", "", "");
+    counter++;
   }
 private:
   std::string getTemporalVariable() {

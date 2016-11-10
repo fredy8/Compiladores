@@ -20,8 +20,8 @@ struct Function {
   string returnType;
   vector<Param> params;
   SymbolTable localSymbolTable;
-  string location;
-  Function(string name, string returnType, vector<Param> params) : params(params), returnType(returnType), name(name) {}
+  int location;
+  Function(string name, string returnType, vector<Param> params, int location = -1) : params(params), returnType(returnType), name(name), location(location) {}
   Function() {}
 };
 

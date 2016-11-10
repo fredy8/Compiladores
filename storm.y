@@ -171,17 +171,8 @@ arr_access:
 %%
 
 int main(int argc, char** argv) {
-  quadStore.types.insert("int");
-  quadStore.types.insert("float");
-  quadStore.types.insert("char");
-  quadStore.types.insert("bool");
-  quadStore.types.insert("string");
-  
-  vector<Param> params{ Param("arg", "string") };
-  quadStore.functions["print"] = Function("print", "void", params);
-  quadStore.functions["read"] = Function("read", "string", vector<Param>());
-
-  // Open a file to read the input from it
+  quadStore.begin();
+    // Open a file to read the input from it
   if (argc < 2) {
     cout << "error: no input file" << endl;
     exit(1);
