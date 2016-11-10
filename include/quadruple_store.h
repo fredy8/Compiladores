@@ -514,6 +514,12 @@ public:
     quads.emplace_back("GOTO", toString(fn.location), "", "");
     counter++;
 
+    string tmp = getTemporalVariable();
+    quads.emplace_back("POP", tmp, "", "");
+    counter++;
+
+    operandStack.push(tmp);
+
     vector<Param> params = fn.params;
     int numArgsExpected = params.size();
     if (numArgsExpected != numArgs) {
