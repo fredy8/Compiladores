@@ -513,13 +513,7 @@ public:
     Function& fn = functions[fnName];
     quads.emplace_back("GOTO", toString(fn.location), "", "");
     counter++;
-
-    string tmp = getTemporalVariable();
-    quads.emplace_back("POP", tmp, "", "");
-    counter++;
-
-    operandStack.push(tmp);
-
+    
     vector<Param> params = fn.params;
     int numArgsExpected = params.size();
     if (numArgsExpected != numArgs) {
@@ -540,6 +534,12 @@ public:
     }
 
     typeStack.push(fn.returnType);
+    if (fn.returnType != "void") {
+      string tmp = getTemporalVariable();
+      quads.emplace_back("POP", tmp, "", "");
+      counter++;
+      operandStack.push(tmp);
+    }
   }
   // called after reading a literal
   void literal(string type) {
