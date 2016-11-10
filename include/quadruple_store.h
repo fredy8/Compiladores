@@ -534,7 +534,6 @@ public:
   // called after reading an operator
   void _operator() {
     pushOperator(lastOperator);
-    operatorStack.push(lastOperator);
   }
   // called after reading an open parenthesis enclosing an expression
   void openParenthesis() {

@@ -34,7 +34,7 @@ class             { return CLASS; }
 ==|!=             { yylval.sval = strdup(yytext); return BIN_OP_P4; }
 &&                { yylval.sval = strdup(yytext); return BIN_OP_P5; }
 \|\|              { yylval.sval = strdup(yytext); return BIN_OP_P6; }
-!                 { yylval.ival = atoi(yytext); return UN_OP_P0; }
+!                 { yylval.sval = strdup(yytext); return UN_OP_P0; }
 [;,:\{\}=\(\)\.\[\]]    { return yytext[0]; }
 \'[ a-zA-Z0-0(\\n)\.,]\'           { yylval.cval = yytext[1]; return C_CHAR; }
 \"[ a-zA-Z0-9(\\n)\.,]+\" { yylval.sval = strdup(yytext); return C_STRING; }
