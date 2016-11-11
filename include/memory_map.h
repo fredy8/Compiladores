@@ -38,8 +38,6 @@ class MemoryMap {
   void DeclareVariable(VariableLifetime lifetime, string variable_type, string var_name) {
     auto& area_pointers = memory_pointers.find(lifetime)->second;
 
-    cout << "Declaring " << variable_type << " " << var_name << endl;
-
     if (variable_type == "int")
       address_to_var[area_pointers.next_int++] = var_name;
     else if (variable_type == "float")
@@ -70,9 +68,8 @@ class MemoryMap {
      if (type == "bool") start += kBoolOffset; 
      if (type == "char") start += kCharOffset; 
 
-     cout << "Looking for " << var_name << " starting at " << start << endl;
-
      for (int i = start; i < start + 50; i++) {
+       cout << address_to_var[i] << "<<" << endl;
        if (address_to_var[i] == var_name) {
          return i;
        }
