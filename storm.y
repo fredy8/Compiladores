@@ -164,7 +164,7 @@ args:
   expr { quadStore.argument(); }
   | args ',' expr { quadStore.argument(); };
 literal:
-  C_INT { quadStore.literal("int") } | C_FLOAT { quadStore.literal("float") } | C_STRING { quadStore.literal("string") } | C_CHAR { quadStore.literal("char") };
+  C_INT { quadStore.literal("int", string(yylval.sval)) } | C_FLOAT { quadStore.literal("float", string(yylval.sval)) } | C_STRING { quadStore.literal("string", string(yylval.sval)) } | C_CHAR { quadStore.literal("char", string(yylval.sval)) };
 arr_access:
   id { quadStore.initArrAccess(); } '[' expr ']' { quadStore.arrAccess(); };
 

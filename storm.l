@@ -25,8 +25,8 @@ if                { return IF; }
 else              { return ELSE; }
 return            { return RETURN; }
 class             { return CLASS; }
--?[0-9]+\.[0-9]+    { yylval.fval = atof(yytext); return C_FLOAT; }
--?[0-9]+            { yylval.ival = atoi(yytext); return C_INT; }
+-?[0-9]+\.[0-9]+    { yylval.sval = strdup(yytext); return C_FLOAT; }
+-?[0-9]+            { yylval.sval = strdup(yytext); return C_INT; }
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.sval = strdup(yytext); return ID; }
 \*|\/|%           { yylval.sval = strdup(yytext); return BIN_OP_P1; }
 \+|\-             { yylval.sval = strdup(yytext); return BIN_OP_P2; }
@@ -36,7 +36,7 @@ class             { return CLASS; }
 \|\|              { yylval.sval = strdup(yytext); return BIN_OP_P6; }
 !                 { yylval.sval = strdup(yytext); return UN_OP_P0; }
 [;,:\{\}=\(\)\.\[\]]    { return yytext[0]; }
-\'[ a-zA-Z0-0(\\n)\.,]\'           { yylval.cval = yytext[1]; return C_CHAR; }
+\'[ a-zA-Z0-0(\\n)\.,]\'           { yylval.sval = strdup(yytext); return C_CHAR; }
 \"[ a-zA-Z0-9(\\n)\.,]+\" { yylval.sval = strdup(yytext); return C_STRING; }
 
 %%

@@ -863,12 +863,12 @@ YY_RULE_SETUP
 case 16:
 YY_RULE_SETUP
 #line 28 "storm.l"
-{ yylval.fval = atof(yytext); return C_FLOAT; }
+{ yylval.sval = strdup(yytext); return C_FLOAT; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 29 "storm.l"
-{ yylval.ival = atoi(yytext); return C_INT; }
+{ yylval.sval = strdup(yytext); return C_INT; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
@@ -918,7 +918,7 @@ YY_RULE_SETUP
 case 27:
 YY_RULE_SETUP
 #line 39 "storm.l"
-{ yylval.cval = yytext[1]; return C_CHAR; }
+{ yylval.sval = strdup(yytext); return C_CHAR; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP

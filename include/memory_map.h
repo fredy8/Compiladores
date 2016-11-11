@@ -23,26 +23,46 @@ class MemoryMap {
     memory_pointers.emplace(VT_Constant, AreaPointers(kConstantStart));
     memory_pointers.emplace(VT_Temporary, AreaPointers(kTemporaryStart));
   }
+  void DeclareGlobal(string type, string name) {
+    DeclareVariable(VT_Global, type, name);
+  }
+  void DeclareLocal(string type, string name) {
+    DeclareVariable(VT_Local, type, name);
+  }
+  void DeclareConstant(string type, string name) {
+    DeclareVariable(VT_Constant, type, name);
+  }
+  void DeclareTemporary(string type, string name) {
+    DeclareVariable(VT_Temporary, type, name);
+  }
   void DeclareVariable(VariableLifetime lifetime, string variable_type, string var_name) {
-    auto area_pointers = memory_pointers.find(lifetime)->second;
+    auto& area_pointers = memory_pointers.find(lifetime)->second;
+
+    cout << "Declaring " << variable_type << " " << var_name << endl;
 
     if (variable_type == "int")
       address_to_var[area_pointers.next_int++] = var_name;
-    if (variable_type == "float")
+    else if (variable_type == "float")
       address_to_var[area_pointers.next_float++] = var_name;
-    if (variable_type == "string")
+    else if (variable_type == "string")
       address_to_var[area_pointers.next_string++] = var_name;
-    if (variable_type == "bool")
+    else if (variable_type == "bool") {
+      cout << area_pointers.next_bool << "!!!" << endl;
       address_to_var[area_pointers.next_bool++] = var_name;
-    if (variable_type == "char")
+    }
+    else if (variable_type == "char")
       address_to_var[area_pointers.next_char++] = var_name;
-    assert(false);
+    else {
+      cout << "Invalid type: " << variable_type << endl;
+      assert(false);
+    }
+
   }
   int Get(VariableLifetime lifetime, string type, string var_name) {
      int start = kGlobalStart; 
      if (lifetime == VT_Local) start = kLocalStart;
      if (lifetime == VT_Constant) start = kConstantStart;
-     if (lifetime == VT_Local) start = kTemporaryStart;
+     if (lifetime == VT_Temporary) start = kTemporaryStart;
 
      if (type == "int") start += kIntOffset; 
      if (type == "float") start += kFloatOffset; 
@@ -50,12 +70,35 @@ class MemoryMap {
      if (type == "bool") start += kBoolOffset; 
      if (type == "char") start += kCharOffset; 
 
-     for(int i = start; i < start + 50; i++) {
-       if (address_to_var[i] == var_name)
+     cout << "Looking for " << var_name << " starting at " << start << endl;
+
+     for (int i = start; i < start + 50; i++) {
+       if (address_to_var[i] == var_name) {
          return i;
+       }
      }
 
      return -1;
+  }
+  int Get(string name, string type) {
+    int address;
+
+    if (name[0] == '*')
+      address = Get(VT_Temporary, type, name);
+    else if (name[0] == '$')
+      address = Get(VT_Constant, type, name);
+    else {
+      address = Get(VT_Global, type, name);
+      if (address == -1)
+        address = Get(VT_Local, type, name);
+    }
+
+    if (address == -1) {
+      cout << type << " " << name << endl;
+      assert(false);
+    }
+
+    return address;
   }
   void ResetLocals() {
     memory_pointers.emplace(VT_Local, AreaPointers(kLocalStart));

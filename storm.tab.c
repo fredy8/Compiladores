@@ -1831,22 +1831,22 @@ yyreduce:
 
   case 103:
 #line 167 "storm.y"
-    { quadStore.literal("int") ;}
+    { quadStore.literal("int", string(yylval.sval)) ;}
     break;
 
   case 104:
 #line 167 "storm.y"
-    { quadStore.literal("float") ;}
+    { quadStore.literal("float", string(yylval.sval)) ;}
     break;
 
   case 105:
 #line 167 "storm.y"
-    { quadStore.literal("string") ;}
+    { quadStore.literal("string", string(yylval.sval)) ;}
     break;
 
   case 106:
 #line 167 "storm.y"
-    { quadStore.literal("char") ;}
+    { quadStore.literal("char", string(yylval.sval)) ;}
     break;
 
   case 107:
