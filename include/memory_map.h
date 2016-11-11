@@ -44,10 +44,8 @@ class MemoryMap {
       address_to_var[area_pointers.next_float++] = var_name;
     else if (variable_type == "string")
       address_to_var[area_pointers.next_string++] = var_name;
-    else if (variable_type == "bool") {
-      cout << area_pointers.next_bool << "!!!" << endl;
+    else if (variable_type == "bool")
       address_to_var[area_pointers.next_bool++] = var_name;
-    }
     else if (variable_type == "char")
       address_to_var[area_pointers.next_char++] = var_name;
     else {
@@ -69,7 +67,6 @@ class MemoryMap {
      if (type == "char") start += kCharOffset; 
 
      for (int i = start; i < start + 50; i++) {
-       cout << address_to_var[i] << "<<" << endl;
        if (address_to_var[i] == var_name) {
          return i;
        }
