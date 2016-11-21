@@ -131,7 +131,10 @@ public:
 
     // Push new quadruple and result to stacks
     std::string result = getTemporalVariable(resultType);
-    Quadruple quad(oper, toString(memory_map.Get(operand1, type1)), toString(memory_map.Get(operand2, type2)), toString(memory_map.Get(result, resultType)));
+    std::string b = toString(memory_map.Get(operand1, type1));
+    std::string c = (operand2 == "" ? "" : toString(memory_map.Get(operand2, type2)));
+    std::string d = toString(memory_map.Get(result, resultType));
+    Quadruple quad(oper, b, c, d);
     typeStack.push(resultType);
     operandStack.push(result);
     quads.push_back(quad);

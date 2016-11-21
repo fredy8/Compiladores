@@ -123,6 +123,13 @@ class VirtualMachine {
   stack<int> stack_;
   vector<Quadruple> quads;
   int next_instruction;
+
+  int stoi(string str) {
+    return atoi(str.c_str());
+  }
+  double stod(string str) {
+    return atof(str.c_str());
+  }
 };
 
 #endif // VIRTUAL_MACHINE_H_
