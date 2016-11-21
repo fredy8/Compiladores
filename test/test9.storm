@@ -11,7 +11,7 @@ function int parseInt(int i) {
 function int main() {
   int a, b, c, d, e;
   a = parseInt(b);
-  if (!(b == c)) {
+  if (b == c) {
     c = c + 1;
     d = e*2;
   }

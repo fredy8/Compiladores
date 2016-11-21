@@ -157,7 +157,7 @@ public:
     }
     // Generate GOTOF quadruple and store the counter to modify it later
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTOF", "", "", ""));
+    quads.push_back(Quadruple("GOTOF", toString(memory_map.Get(condition, "bool")), "", ""));
     counter++;
   }
   void ifBlockEnd() {
@@ -246,7 +246,7 @@ public:
     counter++;
     // Jump to where the block starts (skip third element)
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTO", condition, "", ""));
+    quads.push_back(Quadruple("GOTO", "", "", condition));
     counter++;
     // Store the start of the third element of the for
     jumpStack.push(counter);
@@ -367,7 +367,7 @@ public:
     debug(ss.str());
 
     if (lastFuncName == "main") {
-      quads[0].b = toString(counter);
+      quads[0].d = toString(counter);
     }
   }
 
@@ -534,7 +534,7 @@ public:
     quads.emplace_back("PUSH", toString(memory_map.Get(ct, "int")), "", "");
     counter++;
 
-    quads.emplace_back("GOTO", toString(fn.location), "", "");
+    quads.emplace_back("GOTO", "", "", toString(fn.location));
     counter++;
 
     typeStack.push(fn.returnType);

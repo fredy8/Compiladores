@@ -138,6 +138,7 @@
 #include "include/quadruple_store.h"
 #include "include/function.h"
 #include "include/class.h"
+#include "include/virtual_machine.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -171,7 +172,7 @@ void yyerror(const char *s);
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 27 "storm.y"
+#line 28 "storm.y"
 {
   int ival;
   float fval;
@@ -179,7 +180,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 193 of yacc.c.  */
-#line 183 "storm.tab.c"
+#line 184 "storm.tab.c"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -192,7 +193,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 196 "storm.tab.c"
+#line 197 "storm.tab.c"
 
 #ifdef short
 # undef short
@@ -515,17 +516,17 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    63,    63,    64,    65,    66,    68,    70,    71,    73,
-      75,    76,    78,    78,    78,    78,    79,    80,    82,    83,
-      85,    87,    88,    89,    91,    92,    93,    94,    95,    96,
-      97,    99,    99,   100,    99,   102,   102,   102,   104,   104,
-     106,   106,   106,   107,   108,   110,   110,   111,   111,   113,
-     113,   115,   117,   117,   117,   117,   117,   119,   119,   120,
-     121,   122,   124,   124,   125,   127,   127,   128,   130,   130,
-     131,   133,   133,   134,   136,   136,   137,   139,   139,   140,
-     142,   142,   143,   145,   145,   146,   147,   148,   149,   150,
-     151,   153,   155,   156,   156,   158,   158,   160,   160,   161,
-     162,   164,   165,   167,   167,   167,   167,   169,   169
+       0,    64,    64,    65,    66,    67,    69,    71,    72,    74,
+      76,    77,    79,    79,    79,    79,    80,    81,    83,    84,
+      86,    88,    89,    90,    92,    93,    94,    95,    96,    97,
+      98,   100,   100,   101,   100,   103,   103,   103,   105,   105,
+     107,   107,   107,   108,   109,   111,   111,   112,   112,   114,
+     114,   116,   118,   118,   118,   118,   118,   120,   120,   121,
+     122,   123,   125,   125,   126,   128,   128,   129,   131,   131,
+     132,   134,   134,   135,   137,   137,   138,   140,   140,   141,
+     143,   143,   144,   146,   146,   147,   148,   149,   150,   151,
+     152,   154,   156,   157,   157,   159,   159,   161,   161,   162,
+     163,   165,   166,   168,   168,   168,   168,   170,   170
 };
 #endif
 
@@ -1555,313 +1556,313 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 63 "storm.y"
+#line 64 "storm.y"
     { quadStore.end(); ;}
     break;
 
   case 7:
-#line 70 "storm.y"
-    { quadStore.declareVar(); ;}
-    break;
-
-  case 8:
 #line 71 "storm.y"
     { quadStore.declareVar(); ;}
     break;
 
+  case 8:
+#line 72 "storm.y"
+    { quadStore.declareVar(); ;}
+    break;
+
   case 9:
-#line 73 "storm.y"
+#line 74 "storm.y"
     { quadStore.lastIdName = string(yylval.sval); ;}
     break;
 
   case 10:
-#line 75 "storm.y"
+#line 76 "storm.y"
     { quadStore.typeIsArray = false; ;}
     break;
 
   case 11:
-#line 76 "storm.y"
+#line 77 "storm.y"
     { quadStore.typeIsArray = true; quadStore.lastArraySize = yylval.ival; quadStore.validateArraySize(); ;}
     break;
 
   case 12:
-#line 78 "storm.y"
+#line 79 "storm.y"
     { quadStore.lastReturnType = string(yylval.sval); ;}
     break;
 
   case 13:
-#line 78 "storm.y"
+#line 79 "storm.y"
     { quadStore.lastFuncName = string(yylval.sval); ;}
     break;
 
   case 14:
-#line 78 "storm.y"
+#line 79 "storm.y"
     { quadStore.declareFunc(); ;}
     break;
 
   case 15:
-#line 78 "storm.y"
+#line 79 "storm.y"
     { quadStore.functionExit(); ;}
     break;
 
   case 20:
-#line 85 "storm.y"
+#line 86 "storm.y"
     { quadStore.declareParam() ;}
     break;
 
   case 31:
-#line 99 "storm.y"
+#line 100 "storm.y"
     { quadStore.forConditionStart(); ;}
     break;
 
   case 32:
-#line 99 "storm.y"
+#line 100 "storm.y"
     { quadStore.forConditionEnd(); ;}
     break;
 
   case 33:
-#line 100 "storm.y"
+#line 101 "storm.y"
     { quadStore.forStart(); ;}
     break;
 
   case 34:
-#line 100 "storm.y"
+#line 101 "storm.y"
     { quadStore.forEnd(); ;}
     break;
 
   case 35:
-#line 102 "storm.y"
+#line 103 "storm.y"
     { quadStore.whileConditionStart(); ;}
     break;
 
   case 36:
-#line 102 "storm.y"
+#line 103 "storm.y"
     { quadStore.whileBlockStart(); ;}
     break;
 
   case 37:
-#line 102 "storm.y"
+#line 103 "storm.y"
     { quadStore.whileEnd(); ;}
     break;
 
   case 38:
-#line 104 "storm.y"
+#line 105 "storm.y"
     { quadStore.doWhileStart(); ;}
     break;
 
   case 39:
-#line 104 "storm.y"
+#line 105 "storm.y"
     { quadStore.doWhileEnd(); ;}
     break;
 
   case 40:
-#line 106 "storm.y"
+#line 107 "storm.y"
     { quadStore.ifStart(); ;}
     break;
 
   case 41:
-#line 106 "storm.y"
+#line 107 "storm.y"
     { quadStore.ifBlockEnd(); ;}
     break;
 
   case 42:
-#line 106 "storm.y"
+#line 107 "storm.y"
     { quadStore.ifEnd(); ;}
     break;
 
   case 45:
-#line 110 "storm.y"
+#line 111 "storm.y"
     { quadStore.returnVoid(); ;}
     break;
 
   case 47:
-#line 111 "storm.y"
+#line 112 "storm.y"
     { quadStore.returnExpr(); ;}
     break;
 
   case 51:
-#line 115 "storm.y"
+#line 116 "storm.y"
     { quadStore.lastType = string(yylval.sval); ;}
     break;
 
   case 56:
-#line 117 "storm.y"
+#line 118 "storm.y"
     { quadStore.validateType(); ;}
     break;
 
   case 57:
-#line 119 "storm.y"
+#line 120 "storm.y"
     { quadStore.declareClass(); ;}
     break;
 
   case 58:
-#line 119 "storm.y"
+#line 120 "storm.y"
     { quadStore.endClass(); ;}
     break;
 
   case 62:
-#line 124 "storm.y"
+#line 125 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 63:
-#line 124 "storm.y"
+#line 125 "storm.y"
     { quadStore.operation(6); ;}
     break;
 
   case 65:
-#line 127 "storm.y"
+#line 128 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 66:
-#line 127 "storm.y"
+#line 128 "storm.y"
     { quadStore.operation(5); ;}
     break;
 
   case 68:
-#line 130 "storm.y"
+#line 131 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 69:
-#line 130 "storm.y"
+#line 131 "storm.y"
     { quadStore.operation(4); ;}
     break;
 
   case 71:
-#line 133 "storm.y"
+#line 134 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 72:
-#line 133 "storm.y"
+#line 134 "storm.y"
     { quadStore.operation(3); ;}
     break;
 
   case 74:
-#line 136 "storm.y"
+#line 137 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 75:
-#line 136 "storm.y"
+#line 137 "storm.y"
     { quadStore.operation(2); ;}
     break;
 
   case 77:
-#line 139 "storm.y"
+#line 140 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 78:
-#line 139 "storm.y"
+#line 140 "storm.y"
     { quadStore.operation(1); ;}
     break;
 
   case 80:
-#line 142 "storm.y"
+#line 143 "storm.y"
     { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); ;}
     break;
 
   case 81:
-#line 142 "storm.y"
+#line 143 "storm.y"
     { quadStore.operation(0); ;}
     break;
 
   case 83:
-#line 145 "storm.y"
+#line 146 "storm.y"
     { quadStore.openParenthesis(); ;}
     break;
 
   case 84:
-#line 145 "storm.y"
+#line 146 "storm.y"
     { quadStore.closeParenthesis(); ;}
     break;
 
   case 90:
-#line 151 "storm.y"
+#line 152 "storm.y"
     { quadStore.varExpr(); ;}
     break;
 
   case 91:
-#line 153 "storm.y"
+#line 154 "storm.y"
     { quadStore.assign(); ;}
     break;
 
   case 92:
-#line 155 "storm.y"
+#line 156 "storm.y"
     { quadStore.initAssign(); ;}
     break;
 
   case 93:
-#line 156 "storm.y"
+#line 157 "storm.y"
     { quadStore.initAssign(); ;}
     break;
 
   case 94:
-#line 156 "storm.y"
+#line 157 "storm.y"
     { quadStore.arrAccess(); ;}
     break;
 
   case 95:
-#line 158 "storm.y"
+#line 159 "storm.y"
     { quadStore.fnCallInit(); ;}
     break;
 
   case 96:
-#line 158 "storm.y"
+#line 159 "storm.y"
     { quadStore.fnCall(); ;}
     break;
 
   case 97:
-#line 160 "storm.y"
+#line 161 "storm.y"
     { quadStore.objFnCallInit() ;}
     break;
 
   case 101:
-#line 164 "storm.y"
-    { quadStore.argument(); ;}
-    break;
-
-  case 102:
 #line 165 "storm.y"
     { quadStore.argument(); ;}
     break;
 
+  case 102:
+#line 166 "storm.y"
+    { quadStore.argument(); ;}
+    break;
+
   case 103:
-#line 167 "storm.y"
+#line 168 "storm.y"
     { quadStore.literal("int", string(yylval.sval)) ;}
     break;
 
   case 104:
-#line 167 "storm.y"
+#line 168 "storm.y"
     { quadStore.literal("float", string(yylval.sval)) ;}
     break;
 
   case 105:
-#line 167 "storm.y"
+#line 168 "storm.y"
     { quadStore.literal("string", string(yylval.sval)) ;}
     break;
 
   case 106:
-#line 167 "storm.y"
+#line 168 "storm.y"
     { quadStore.literal("char", string(yylval.sval)) ;}
     break;
 
   case 107:
-#line 169 "storm.y"
+#line 170 "storm.y"
     { quadStore.initArrAccess(); ;}
     break;
 
   case 108:
-#line 169 "storm.y"
+#line 170 "storm.y"
     { quadStore.arrAccess(); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 1865 "storm.tab.c"
+#line 1866 "storm.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2075,7 +2076,7 @@ yyreturn:
 }
 
 
-#line 171 "storm.y"
+#line 172 "storm.y"
 
 
 int main(int argc, char** argv) {
@@ -2098,7 +2099,8 @@ int main(int argc, char** argv) {
   do {
     yyparse();
   } while (!feof(yyin));
-  
+
+  VirtualMachine vm(quadStore.quads);
 }
 
 void yyerror(const char *s) {

@@ -11,6 +11,7 @@
 #include "include/quadruple_store.h"
 #include "include/function.h"
 #include "include/class.h"
+#include "include/virtual_machine.h"
 using namespace std;
 
 // stuff from flex that bison needs to know about:
@@ -190,7 +191,8 @@ int main(int argc, char** argv) {
   do {
     yyparse();
   } while (!feof(yyin));
-  
+
+  VirtualMachine vm(quadStore.quads);
 }
 
 void yyerror(const char *s) {
