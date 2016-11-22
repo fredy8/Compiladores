@@ -74,7 +74,7 @@ id:
   ID { quadStore.lastIdName = string(yylval.sval); } ;
 var_arr:
   id { quadStore.typeIsArray = false; }
-  | id '[' C_INT ']' { quadStore.typeIsArray = true; quadStore.lastArraySize = yylval.ival; quadStore.validateArraySize(); };
+  | id '[' C_INT ']' { quadStore.typeIsArray = true; quadStore.lastArraySize = atoi(yylval.sval); quadStore.validateArraySize(); };
 function:
   FUNCTION return_type { quadStore.lastReturnType = string(yylval.sval); } id { quadStore.lastFuncName = string(yylval.sval); } '(' parameters ')' { quadStore.declareFunc(); } block { quadStore.functionExit(); };
 parameters:
@@ -154,7 +154,7 @@ assign:
   assignable '=' expr { quadStore.assign(); };
 assignable:
   id { quadStore.initAssign(); }
-  | id { quadStore.initAssign(); } '[' expr ']' { quadStore.arrAccess(); } ;
+  | id { quadStore.initArrAccess(); } '[' expr ']' { quadStore.arrAccess(); } ;
 fn_call:
   id { quadStore.fnCallInit(); } '(' arguments ')' { quadStore.fnCall(); };
 obj_fn_call:
