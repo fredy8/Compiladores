@@ -1,0 +1,5 @@
+function int main() {
+  int a, arr[10];
+  a = 5;
+  arr[a+4] = 6;
+}
