@@ -538,6 +538,7 @@ public:
       semanticError(ss.str());
     }
 
+    // check fn args types and push them to the stack
     for (int i = 0; i < numArgs; i++) {
       string argType = typeStack.top();
       typeStack.pop();
@@ -552,14 +553,23 @@ public:
       counter++;
       operandStack.pop();
     }
-    
-    string ct = getConstantVariable("int", toString(counter+3));
 
-    quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
-    counter++;
+    if (lastIdName == "read") {
+      quads.emplace_back("READ", memory_map.Get("@" + fnName, fn.returnType), "", "");
+      counter++;
+    } else if (lastIdName == "print") {
+      quads.emplace_back("PRINT", "", "", "");
+      counter++;
+    } else {
+      // push return address
+      string ct = getConstantVariable("int", toString(counter+3));
+      quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
+      counter++;
 
-    quads.emplace_back("GOTO", "", "", toString(fn.location));
-    counter++;
+      // goto function
+      quads.emplace_back("GOTO", "", "", toString(fn.location));
+      counter++;
+    }
 
     typeStack.push(fn.returnType);
     if (fn.returnType != "void") {
@@ -699,6 +709,7 @@ public:
     vector<Param> params{ Param("arg", "string") };
     functions["print"] = Function("print", "void", params);
     functions["read"] = Function("read", "string", vector<Param>());
+    memory_map.DeclareGlobal("string", "@read");
 
     quads.emplace_back("GOTO", "", "", "");
     counter++;

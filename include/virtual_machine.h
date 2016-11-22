@@ -107,7 +107,8 @@ class VirtualMachine {
       if (any_cast<bool>(memory[condition_address]))
         next_instruction = goto_address;
     } else if (quad.a == "PRINT") {
-      int read_address = stoi(quad.d);
+      int read_address = stack_.top();
+      stack_.pop();
       cout << any_cast<string>(memory[read_address]);
     } else if (quad.a == "READ") {
       int write_address = stoi(quad.d);

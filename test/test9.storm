@@ -10,8 +10,10 @@ function int parseInt(int i) {
 
 function int main() {
   int a, b, c, d, e;
+  string f;
   a = parseInt(b);
-  if (b == c) {
+  if (!(b == c)) {
+    f = read();
     c = c + 1;
     d = e*2;
   }
