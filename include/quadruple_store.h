@@ -62,8 +62,8 @@ public:
   stack<string> fnCallStack;
   // contains the number of arguments supplied when calling a function
   stack<int> fnCallNumArgsStack;
-  // maps the name of a variable of type array to its array size
-  map<string, int> arraySizes;
+  // keeps track of array variable names for nested access
+  stack<string> arrayIdStack;
 public:
   void printOperandStack() {
     stack<string> copy = operandStack;
@@ -326,12 +326,14 @@ public:
     }
     
     if (typeIsArray) {
-      arraySizes[lastIdName] = lastArraySize;
-      lastType += "[]";
+      cout << "array ";
+      table->operator[](lastIdName) = SymbolTableData(lastType, lastArraySize);
+      memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
+    } else {
+      table->operator[](lastIdName) = SymbolTableData(lastType);
+      memory_map.DeclareVariable(scope, lastType, lastIdName);
     }
 
-    table->operator[](lastIdName) = lastType;
-    memory_map.DeclareVariable(scope, lastType, lastIdName);
     stringstream ss;
     ss << "var declared: " << lastIdName << endl;
     debug(ss.str());
@@ -446,18 +448,40 @@ public:
   // first check global score, then function scope, then class scope
   string getSymbolType(string varName) {
     if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName];
+      return globalScopeSymbolTable[varName].type;
     }
 
     if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName];
+      return functions[lastFuncName].localSymbolTable[varName].type;
     }
 
     if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName];
+      return classes[lastClassName].classSymbolTable[varName].type;
     }
 
     return "";
+  }
+
+  // returns whether the variable is an array
+  bool isSymbolArray(string varName) {
+    return getSymbolArraySize(varName) != -1;
+  }
+
+  // returns the size of an array
+  int getSymbolArraySize(string varName) {
+    if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
+      return globalScopeSymbolTable[varName].size;
+    }
+
+    if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
+      return functions[lastFuncName].localSymbolTable[varName].size;
+    }
+
+    if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
+      return classes[lastClassName].classSymbolTable[varName].size;
+    }
+
+    return -1;
   }
 
   // called after reading the function name of a method call
@@ -557,7 +581,10 @@ public:
   }
   // called after reading the variable name of an array type when accessing an array
   void initArrAccess() {
-    typeStack.push(getSymbolType(lastIdName));
+    if (!isSymbolArray(lastIdName)) {
+      semanticError("Variable is not an array: " + lastIdName);
+    }
+    arrayIdStack.push(lastIdName);
   }
   // called after reading an array access.
   void arrAccess() {
@@ -567,11 +594,31 @@ public:
       semanticError("Array subscript must be an int; found " + indexType);
     }
 
-    string type = typeStack.top();
-    typeStack.pop(); 
-    typeStack.push(type.substr(0, type.size()-2));
+    string index = operandStack.top();
+    operandStack.pop();
+    string arrayId = arrayIdStack.top();
+    arrayIdStack.pop();
+    string arrayType = getSymbolType(arrayId);
+    int arraySize = getSymbolArraySize(arrayId);
+    string arrayMemory = memory_map.Get(arrayId, arrayType);
+    string indexMemory = memory_map.Get(index, "int");
+
+    // Generate quadrule to verify that index is valid
+    quads.emplace_back(Quadruple("VER", indexMemory, toString(arraySize), ""));
+    counter++;
+    // Store array size to add it to the index
+    string ct = getConstantVariable("int", arrayMemory);
+    string ctMemory = memory_map.Get(ct, "int");
+    // Add them to get the memory for the array cell
+    string cellVariable = getTemporalVariable("int");
+    string cellMemory = memory_map.Get(cellVariable, "int");
+    quads.emplace_back(Quadruple("+", ctMemory, indexMemory, cellMemory));
+    counter++;
+    // Push the result to the operand stack as an indirect access
+    pushOperand("&" + cellMemory, arrayType);
+
     stringstream ss;
-    ss << "found array access" << type << endl;
+    ss << "found array access " << arrayId << "[]: " << arrayType << endl;
     debug(ss.str());
   }
   // called after reading the last expression of an operation
@@ -583,8 +630,14 @@ public:
     stringstream ss;
     ss << "found var expr: " << lastIdName << endl;
     debug(ss.str());
-    typeStack.push(getSymbolType(lastIdName));
-    pushOperand(lastIdName, getSymbolType(lastIdName));
+    string type = getSymbolType(lastIdName);
+    if (type == "") {
+      semanticError("Use of undeclared variable: " + lastIdName);
+    } else if (isSymbolArray(lastIdName)) {
+      semanticError("Can't use array variable without index: " + lastIdName);
+    }
+
+    pushOperand(lastIdName, type);
   }
   // called after reading a return expression
   void returnExpr() {
@@ -662,12 +715,12 @@ private:
     return ss.str();
   }
   std::string getConstantVariable(string type, string value) {
-    counter++;
     std::stringstream ss;
     ss << "$c" << constCounter;
     constCounter++;
     memory_map.DeclareConstant(type, ss.str());
     quads.emplace_back("CONSTANT", type, value, memory_map.Get(ss.str(), type));
+    counter++;
     return ss.str();
   }
   int getOperPriority(std::string oper) {

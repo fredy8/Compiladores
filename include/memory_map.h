@@ -54,12 +54,12 @@ class MemoryMap {
     }
   }
   void DeclareGlobalArray(string type, string name, int size) {
-    DeclareVariableArray(VT_Global, type, name, size);
+    DeclareArrayVariable(VT_Global, type, name, size);
   }
   void DeclareLocalArray(string type, string name, int size) {
-    DeclareVariableArray(VT_Local, type, name, size);
+    DeclareArrayVariable(VT_Local, type, name, size);
   }
-  void DeclareVariableArray(VariableLifetime lifetime, string variable_type, string var_name, int size) {
+  void DeclareArrayVariable(VariableLifetime lifetime, string variable_type, string var_name, int size) {
     auto& area_pointers = memory_pointers.find(lifetime)->second;
 
     if (lifetime != VT_Global && lifetime != VT_Local) {
@@ -115,7 +115,9 @@ class MemoryMap {
   string Get(string name, string type) {
     int address;
 
-    if (name[0] == '*')
+    if (name[0] == '&')
+      return "&" + Get(name.substr(1), type);
+    else if (name[0] == '*')
       address = Get(VT_Temporary, type, name);
     else if (name[0] == '$')
       address = Get(VT_Constant, type, name);
