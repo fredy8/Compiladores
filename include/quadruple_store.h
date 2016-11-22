@@ -67,10 +67,18 @@ public:
 public:
   void printOperandStack() {
     stack<string> copy = operandStack;
+    stack<string> copy2 = typeStack;
     cout << "OPERAND STACK" << endl;
-    while(!copy.empty()) {
-      cout << copy.top() << endl;
-      copy.pop();
+    while(!copy.empty() || !copy2.empty()) {
+      if (!copy.empty()) {
+        cout << copy.top();
+        copy.pop();
+      }
+      if (!copy2.empty()) {
+        cout << "\t" << copy2.top();
+        copy2.pop();
+      }
+      cout << endl;
     }
     cout << "----------------" << endl;
   }
@@ -81,7 +89,7 @@ public:
       string cmd;
       while(cin >> cmd) {
         if (cmd == "c") break;
-        if (cmd == "o") printOperandStack();
+        if (cmd == "o") { printOperandStack(); break; }
       }
       cout << endl << endl;
     }
@@ -134,8 +142,7 @@ public:
     std::string b = memory_map.Get(operand1, type1);
     std::string c = (operand2 == "" ? "" : memory_map.Get(operand2, type2));
     std::string d = memory_map.Get(result, resultType);
-    typeStack.push(resultType);
-    operandStack.push(result);
+    pushOperand(result, resultType);
     quads.emplace_back(Quadruple(oper, b, c, d));
     counter++;
   }
@@ -282,19 +289,6 @@ public:
     int jump1 = jumpStack.top();
     jumpStack.pop();
     quads[jump1].d = toString(counter);
-  }
-  void assignEnd() {
-    std::string expression = operandStack.top();
-    operandStack.pop();
-    std::string expressionType = typeStack.top();
-    typeStack.top();
-    std::string assignable = operandStack.top();
-    std::string assignableType = typeStack.top();
-    if (expressionType != assignableType) {
-      semanticError("Expected " + assignableType + " found " + expressionType);
-    }
-    quads.push_back(Quadruple("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType)));
-    counter++;
   }
   // Called after reading a parameter from a function
   void declareParam() {
@@ -500,7 +494,6 @@ public:
     ss << "found assignable: " << lastIdName << endl;
     debug(ss.str());
 
-    typeStack.push(getSymbolType(lastIdName));
     pushOperand(lastIdName, getSymbolType(lastIdName));
   }
 
@@ -509,15 +502,20 @@ public:
     stringstream ss;
     ss << "found assignment" << endl;
     debug(ss.str());
-    string typeAssigned = typeStack.top();
-    typeStack.pop(); 
-    string varType = typeStack.top();
-    typeStack.pop();
-    if (varType != typeAssigned) {
-      semanticError("Expected " + varType + " found " + typeAssigned);
-    }
 
-    assignEnd();
+    std::string expression = operandStack.top();
+    operandStack.pop();
+    std::string expressionType = typeStack.top();
+    typeStack.pop();
+    std::string assignable = operandStack.top();
+    operandStack.pop();
+    std::string assignableType = typeStack.top();
+    typeStack.pop();
+    if (expressionType != assignableType) {
+      semanticError("Expected " + assignableType + " found " + expressionType);
+    }
+    quads.push_back(Quadruple("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType)));
+    counter++;
   }
   // called after calling a function
   // foo(12, "abc")
@@ -576,7 +574,6 @@ public:
     stringstream ss;
     ss << "found literal: " << type << endl;
     debug(ss.str());
-    typeStack.push(type);
     pushConstant(type, value);
   }
   // called after reading the variable name of an array type when accessing an array
@@ -615,7 +612,7 @@ public:
     quads.emplace_back(Quadruple("+", ctMemory, indexMemory, cellMemory));
     counter++;
     // Push the result to the operand stack as an indirect access
-    pushOperand("&" + cellMemory, arrayType);
+    pushOperand("&" + cellVariable, arrayType);
 
     stringstream ss;
     ss << "found array access " << arrayId << "[]: " << arrayType << endl;
