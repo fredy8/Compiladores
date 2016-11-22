@@ -52,6 +52,44 @@ class MemoryMap {
       cout << "Invalid type: " << variable_type << endl;
       assert(false);
     }
+  }
+  void DeclareGlobalArray(string type, string name, int size) {
+    DeclareVariableArray(VT_Global, type, name, size);
+  }
+  void DeclareLocalArray(string type, string name, int size) {
+    DeclareVariableArray(VT_Local, type, name, size);
+  }
+  void DeclareVariableArray(VariableLifetime lifetime, string variable_type, string var_name, int size) {
+    auto& area_pointers = memory_pointers.find(lifetime)->second;
+
+    if (lifetime != VT_Global && lifetime != VT_Local) {
+      cout << "Array can't be declared in Lifetime: " << lifetime << endl;
+      assert(false);
+    }
+    if (variable_type == "int") {
+      address_to_var[area_pointers.next_int] = var_name;
+      area_pointers.next_int += size;
+    }
+    else if (variable_type == "float") {
+      address_to_var[area_pointers.next_float] = var_name;
+      area_pointers.next_float += size;
+    }
+    else if (variable_type == "string") {
+      address_to_var[area_pointers.next_string] = var_name;
+      area_pointers.next_string += size;
+    }
+    else if (variable_type == "bool") {
+      address_to_var[area_pointers.next_bool] = var_name;
+      area_pointers.next_bool += size;
+    }
+    else if (variable_type == "char") {
+      address_to_var[area_pointers.next_char] = var_name;
+      area_pointers.next_char += size;
+    }
+    else {
+      cout << "Invalid type: " << variable_type << endl;
+      assert(false);
+    }
 
   }
   int Get(VariableLifetime lifetime, string type, string var_name) {
@@ -74,7 +112,7 @@ class MemoryMap {
 
      return -1;
   }
-  int Get(string name, string type) {
+  string Get(string name, string type) {
     int address;
 
     if (name[0] == '*')
@@ -92,7 +130,7 @@ class MemoryMap {
       assert(false);
     }
 
-    return address;
+    return toString(address);
   }
   void ResetLocals() {
     memory_pointers.emplace(VT_Local, AreaPointers(kLocalStart));
@@ -119,6 +157,11 @@ class MemoryMap {
   map<VariableLifetime, AreaPointers> memory_pointers;
   static const int kGlobalStart = 0, kLocalStart = 250, kConstantStart = 500, kTemporaryStart = 750;
   static const int kIntOffset = 0, kFloatOffset = 50, kStringOffset = 100, kBoolOffset = 150, kCharOffset = 200;
+  string toString(int num) {
+    stringstream ss;
+    ss << num;
+    return ss.str();
+  }
 };
 
 #endif // MEMORY_MAP_H
