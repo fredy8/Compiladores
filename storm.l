@@ -17,6 +17,7 @@ int               { yylval.sval = strdup(yytext); return T_INT; }
 float             { yylval.sval = strdup(yytext); return T_FLOAT; }
 string            { yylval.sval = strdup(yytext); return T_STRING; }
 char              { yylval.sval = strdup(yytext); return T_CHAR; }
+bool              { yylval.sval = strdup(yytext); return T_BOOL; }
 void              { yylval.sval = strdup(yytext); return T_VOID; }
 for               { return FOR; }
 while             { return WHILE; }
@@ -25,8 +26,9 @@ if                { return IF; }
 else              { return ELSE; }
 return            { return RETURN; }
 class             { return CLASS; }
--?[0-9]+\.[0-9]+    { yylval.sval = strdup(yytext); return C_FLOAT; }
--?[0-9]+            { yylval.sval = strdup(yytext); return C_INT; }
+-?[0-9]+\.[0-9]+  { yylval.sval = strdup(yytext); return C_FLOAT; }
+-?[0-9]+          { yylval.sval = strdup(yytext); return C_INT; }
+true|false        { yylval.sval = strdup(yytext); return C_BOOL; }
 [a-zA-Z_][a-zA-Z0-9_]*      { yylval.sval = strdup(yytext); return ID; }
 \*|\/|%           { yylval.sval = strdup(yytext); return BIN_OP_P1; }
 \+|\-             { yylval.sval = strdup(yytext); return BIN_OP_P2; }

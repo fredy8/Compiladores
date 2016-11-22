@@ -28,6 +28,7 @@ void yyerror(const char *s);
 %union {
   int ival;
   float fval;
+  bool bval;
   char *sval;
   char cval;
 }
@@ -36,12 +37,14 @@ void yyerror(const char *s);
 %token<fval> C_FLOAT
 %token<sval> C_STRING
 %token<cval> C_CHAR
+%token<bval> C_BOOL
 %token<sval> ID
 %token FUNCTION
 %token T_INT
 %token T_FLOAT
 %token T_STRING
 %token T_CHAR
+%token T_BOOL
 %token T_VOID
 %token FOR
 %token WHILE
@@ -115,7 +118,7 @@ return_type:
 type:
   type_aux { quadStore.lastType = string(yylval.sval); };
 type_aux: 
-  T_INT | T_FLOAT | T_STRING | T_CHAR | id { quadStore.validateType(); };
+  T_INT | T_FLOAT | T_STRING | T_CHAR | T_BOOL | id { quadStore.validateType(); };
 class_declr:
   CLASS id { quadStore.declareClass(); } '{' class_declr_a '}' { quadStore.endClass(); };
 class_declr_a:
@@ -165,7 +168,11 @@ args:
   expr { quadStore.argument(); }
   | args ',' expr { quadStore.argument(); };
 literal:
-  C_INT { quadStore.literal("int", string(yylval.sval)) } | C_FLOAT { quadStore.literal("float", string(yylval.sval)) } | C_STRING { quadStore.literal("string", string(yylval.sval)) } | C_CHAR { quadStore.literal("char", string(yylval.sval)) };
+  C_INT { quadStore.literal("int", string(yylval.sval)) }
+  | C_FLOAT { quadStore.literal("float", string(yylval.sval)) }
+  | C_STRING { quadStore.literal("string", string(yylval.sval)) }
+  | C_CHAR { quadStore.literal("char", string(yylval.sval)) }
+  | C_BOOL { quadStore.literal("bool", string(yylval.sval)) };
 arr_access:
   id { quadStore.initArrAccess(); } '[' expr ']' { quadStore.arrAccess(); };
 
