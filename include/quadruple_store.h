@@ -321,10 +321,10 @@ public:
     
     if (typeIsArray) {
       cout << "array ";
-      table->operator[](lastIdName) = SymbolTableData(lastType, lastArraySize);
+      table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
       memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
     } else {
-      table->operator[](lastIdName) = SymbolTableData(lastType);
+      table->operator[](lastIdName) = lastType;
       memory_map.DeclareVariable(scope, lastType, lastIdName);
     }
 
@@ -442,40 +442,38 @@ public:
   // first check global score, then function scope, then class scope
   string getSymbolType(string varName) {
     if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName].type;
+      return globalScopeSymbolTable[varName];
     }
 
     if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName].type;
+      return functions[lastFuncName].localSymbolTable[varName];
     }
 
     if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName].type;
+      return classes[lastClassName].classSymbolTable[varName];
     }
 
     return "";
   }
 
   // returns whether the variable is an array
-  bool isSymbolArray(string varName) {
-    return getSymbolArraySize(varName) != -1;
+  bool isArraySymbol(string varName) {
+    return getSymbolType(varName).find('[') != string::npos;
   }
 
   // returns the size of an array
-  int getSymbolArraySize(string varName) {
-    if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName].size;
-    }
+  int getArraySize(string varName) {
+    string type = getSymbolType(varName);
+    int bracket = type.find('['), l = type.length();
+    string number = type.substr(bracket + 1, l - bracket - 2);
+    cout << "!!! Array size: [" << number << "]" << endl;
+    return atoi(number.c_str());
+  }
 
-    if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName].size;
-    }
-
-    if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName].size;
-    }
-
-    return -1;
+  // return the type of an array
+  string getArrayType(string varName) {
+    string type = getSymbolType(varName);
+    return type.substr(0, type.find('['));
   }
 
   // called after reading the function name of a method call
@@ -588,7 +586,7 @@ public:
   }
   // called after reading the variable name of an array type when accessing an array
   void initArrAccess() {
-    if (!isSymbolArray(lastIdName)) {
+    if (!isArraySymbol(lastIdName)) {
       semanticError("Variable is not an array: " + lastIdName);
     }
     arrayIdStack.push(lastIdName);
@@ -605,8 +603,8 @@ public:
     operandStack.pop();
     string arrayId = arrayIdStack.top();
     arrayIdStack.pop();
-    string arrayType = getSymbolType(arrayId);
-    int arraySize = getSymbolArraySize(arrayId);
+    string arrayType = getArrayType(arrayId);
+    int arraySize = getArraySize(arrayId);
     string arrayMemory = memory_map.Get(arrayId, arrayType);
     string indexMemory = memory_map.Get(index, "int");
 
@@ -640,7 +638,7 @@ public:
     string type = getSymbolType(lastIdName);
     if (type == "") {
       semanticError("Use of undeclared variable: " + lastIdName);
-    } else if (isSymbolArray(lastIdName)) {
+    } else if (isArraySymbol(lastIdName)) {
       semanticError("Can't use array variable without index: " + lastIdName);
     }
 
