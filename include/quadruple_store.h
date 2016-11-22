@@ -331,7 +331,7 @@ public:
       lastType += "[]";
     }
 
-    table->operator[](lastIdName) = lastType;
+    table->operator[](lastIdName) = SymbolTableData(lastType);
     memory_map.DeclareVariable(scope, lastType, lastIdName);
     stringstream ss;
     ss << "var declared: " << lastIdName << endl;
@@ -447,15 +447,15 @@ public:
   // first check global score, then function scope, then class scope
   string getSymbolType(string varName) {
     if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName];
+      return globalScopeSymbolTable[varName].type;
     }
 
     if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName];
+      return functions[lastFuncName].localSymbolTable[varName].type;
     }
 
     if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName];
+      return classes[lastClassName].classSymbolTable[varName].type;
     }
 
     return "";

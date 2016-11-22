@@ -4,6 +4,13 @@
 using namespace std;
 #include <map>
 
-typedef map<string, string> SymbolTable;
+struct SymbolTableData {
+  string type;
+  int size;
+  SymbolTableData() {}
+  SymbolTableData(string type, int size = 0) : type(type), size(size) {}
+};
+
+typedef map<string, SymbolTableData> SymbolTable;
 
 #endif // SYMBOLTABLE_H_
