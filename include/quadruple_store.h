@@ -9,7 +9,7 @@
 #include "symbol_table.h"
 #include "memory_map.h"
 
-const bool DEBUG = false;
+const bool DEBUG = true, TRACE = false;
 
 using namespace std;
 
@@ -98,15 +98,17 @@ public:
     cout << "----------------" << endl;
   }
   void debug(string message) {
-    cout << message << endl;
     if (DEBUG) {
-      cout << "c: continue\no: view operand stack" << endl;
-      string cmd;
-      while(cin >> cmd) {
-        if (cmd == "c") break;
-        if (cmd == "o") { printOperandStack(); break; }
+      cout << message << endl;
+      if (TRACE) {
+        cout << "c: continue\no: view operand stack" << endl;
+        string cmd;
+        while(cin >> cmd) {
+          if (cmd == "c") break;
+          if (cmd == "o") { printOperandStack(); break; }
+        }
+        cout << endl << endl;
       }
-      cout << endl << endl;
     }
   }
   void pushOperand(string operand, string type) {
@@ -223,7 +225,7 @@ public:
     // Modify quadruple to jump to when false
     quads[gotof].d = toString(counter);
     stringstream ss;
-    ss << "Ending while on " << counter << ", with jump on " << gotof << endl;
+    ss << "Ending while on " << counter << ", with jump on " << gotof;
     debug(ss.str());
   }
   void doWhileStart() {
@@ -345,7 +347,7 @@ public:
       memory_map.DeclareVariable(scope, lastType, varName);
     }
 
-    ss << "var declared: " << varName << endl;
+    ss << "var declared: " << varName;
     debug(ss.str());
   }
   // it is used to add attributes to a class
@@ -362,7 +364,7 @@ public:
       table->operator[](lastIdName) = lastType;
     }
 
-    ss << "attribute declared: " << lastIdName << endl;
+    ss << "attribute declared: " << lastIdName;
     debug(ss.str());
   }
   // it is used to get the memory for an instance of a custom class 
@@ -473,7 +475,7 @@ public:
     params.clear();
 
     stringstream ss;
-    ss << "function declared: " << lastFuncName << endl;
+    ss << "function declared: " << lastFuncName;
     debug(ss.str());
 
     if (lastFuncName == "main") {
@@ -547,7 +549,7 @@ public:
 
     classes[lastIdName] = Class(lastIdName);
     stringstream ss;
-    ss << "class declared: " << lastIdName << endl;
+    ss << "class declared: " << lastIdName;
     debug(ss.str());
   }
 
@@ -610,7 +612,7 @@ public:
     }
 
     stringstream ss;
-    ss << "function call init: " << functionName << endl;
+    ss << "function call init: " << functionName;
     debug(ss.str());
 
     fnCallStack.push(functionName);
@@ -714,7 +716,7 @@ public:
     }
 
     stringstream ss;
-    ss << "found assignable: " << lastIdName << endl;
+    ss << "found assignable: " << lastIdName;
     debug(ss.str());
 
     pushOperand(lastIdName, getSymbolType(lastIdName));
@@ -723,7 +725,7 @@ public:
   // called after reading the right hand expression of an assignment
   void assign() { 
     stringstream ss;
-    ss << "found assignment" << endl;
+    ss << "found assignment";
     debug(ss.str());
 
     string expression = operandStack.top();
@@ -788,7 +790,7 @@ public:
       isMethodCall = true;
     }
     stringstream ss;
-    ss << "function call ended: " << fnName << endl;
+    ss << "function call ended: " << fnName;
     debug(ss.str());
     fnCallStack.pop();
     methodCallStack.pop();
@@ -942,7 +944,7 @@ public:
   // called after reading a literal
   void literal(string type, string value) {
     stringstream ss;
-    ss << "found literal: " << type << " *** " << value << endl;
+    ss << "found literal: " << type << " *** " << value;
     debug(ss.str());
     pushConstant(type, value);
   }
@@ -984,7 +986,7 @@ public:
     pushOperand("&" + cellVariable, arrayType);
 
     stringstream ss;
-    ss << "found array access " << arrayId << "[]: " << arrayType << endl;
+    ss << "found array access " << arrayId << "[]: " << arrayType;
     debug(ss.str());
   }
   // called after reading the last expression of an operation
@@ -994,7 +996,7 @@ public:
   // called after reading an identifier used as an expression
   void varExpr() {
     stringstream ss;
-    ss << "found var expr: " << lastIdName << endl;
+    ss << "found var expr: " << lastIdName;
     debug(ss.str());
     string type = getSymbolType(lastIdName);
     if (type == "") {
@@ -1089,7 +1091,7 @@ public:
 private:
   void addQuad(string a, string b, string c, string d) {
     quads.emplace_back(a, b, c, d);
-    cout << "[" << a << ", " << b << ", " << c << ", " << d << "]" << endl;
+    //cout << "[" << a << ", " << b << ", " << c << ", " << d << "]" << endl;
     counter++;
   }
   string getTemporalVariable(string type) {
