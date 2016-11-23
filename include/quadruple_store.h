@@ -743,6 +743,7 @@ public:
     quads.emplace_back(Quadruple("+", ctMemory, indexMemory, cellMemory));
     counter++;
     // Push the result to the operand stack as an indirect access
+    arrayType.substr(0, arrayType.find('['));
     pushOperand("&" + cellVariable, arrayType);
 
     stringstream ss;

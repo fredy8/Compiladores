@@ -43,27 +43,29 @@
      C_FLOAT = 259,
      C_STRING = 260,
      C_CHAR = 261,
-     ID = 262,
-     FUNCTION = 263,
-     T_INT = 264,
-     T_FLOAT = 265,
-     T_STRING = 266,
-     T_CHAR = 267,
-     T_VOID = 268,
-     FOR = 269,
-     WHILE = 270,
-     DO = 271,
-     IF = 272,
-     ELSE = 273,
-     RETURN = 274,
-     CLASS = 275,
-     UN_OP_P0 = 276,
-     BIN_OP_P1 = 277,
-     BIN_OP_P2 = 278,
-     BIN_OP_P3 = 279,
-     BIN_OP_P4 = 280,
-     BIN_OP_P5 = 281,
-     BIN_OP_P6 = 282
+     C_BOOL = 262,
+     ID = 263,
+     FUNCTION = 264,
+     T_INT = 265,
+     T_FLOAT = 266,
+     T_STRING = 267,
+     T_CHAR = 268,
+     T_BOOL = 269,
+     T_VOID = 270,
+     FOR = 271,
+     WHILE = 272,
+     DO = 273,
+     IF = 274,
+     ELSE = 275,
+     RETURN = 276,
+     CLASS = 277,
+     UN_OP_P0 = 278,
+     BIN_OP_P1 = 279,
+     BIN_OP_P2 = 280,
+     BIN_OP_P3 = 281,
+     BIN_OP_P4 = 282,
+     BIN_OP_P5 = 283,
+     BIN_OP_P6 = 284
    };
 #endif
 /* Tokens.  */
@@ -71,27 +73,29 @@
 #define C_FLOAT 259
 #define C_STRING 260
 #define C_CHAR 261
-#define ID 262
-#define FUNCTION 263
-#define T_INT 264
-#define T_FLOAT 265
-#define T_STRING 266
-#define T_CHAR 267
-#define T_VOID 268
-#define FOR 269
-#define WHILE 270
-#define DO 271
-#define IF 272
-#define ELSE 273
-#define RETURN 274
-#define CLASS 275
-#define UN_OP_P0 276
-#define BIN_OP_P1 277
-#define BIN_OP_P2 278
-#define BIN_OP_P3 279
-#define BIN_OP_P4 280
-#define BIN_OP_P5 281
-#define BIN_OP_P6 282
+#define C_BOOL 262
+#define ID 263
+#define FUNCTION 264
+#define T_INT 265
+#define T_FLOAT 266
+#define T_STRING 267
+#define T_CHAR 268
+#define T_BOOL 269
+#define T_VOID 270
+#define FOR 271
+#define WHILE 272
+#define DO 273
+#define IF 274
+#define ELSE 275
+#define RETURN 276
+#define CLASS 277
+#define UN_OP_P0 278
+#define BIN_OP_P1 279
+#define BIN_OP_P2 280
+#define BIN_OP_P3 281
+#define BIN_OP_P4 282
+#define BIN_OP_P5 283
+#define BIN_OP_P6 284
 
 
 
@@ -102,11 +106,12 @@ typedef union YYSTYPE
 {
   int ival;
   float fval;
+  bool bval;
   char *sval;
   char cval;
 }
 /* Line 1529 of yacc.c.  */
-#line 110 "storm.tab.h"
+#line 115 "storm.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
