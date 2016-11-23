@@ -110,7 +110,6 @@ class VirtualMachine {
       if (index[0] == '&') {
         index = index.substr(1);
         int idx = any_cast<int>(memory.top()[stoi(index)]);
-        cout << "DEREF " << index << " " << idx << endl;
         stringstream ss;
         ss << idx;
         index = ss.str();
