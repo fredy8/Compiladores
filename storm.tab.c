@@ -1582,7 +1582,7 @@ yyreduce:
 
   case 11:
 #line 77 "storm.y"
-    { quadStore.typeIsArray = true; quadStore.lastArraySize = yylval.ival; quadStore.validateArraySize(); ;}
+    { quadStore.typeIsArray = true; quadStore.lastArraySize = atoi(yylval.sval); quadStore.validateArraySize(); ;}
     break;
 
   case 12:
@@ -1797,7 +1797,7 @@ yyreduce:
 
   case 93:
 #line 157 "storm.y"
-    { quadStore.initAssign(); ;}
+    { quadStore.initArrAccess(); ;}
     break;
 
   case 94:
@@ -2101,6 +2101,7 @@ int main(int argc, char** argv) {
   } while (!feof(yyin));
 
   VirtualMachine vm(quadStore.quads);
+  vm.Start();
 }
 
 void yyerror(const char *s) {

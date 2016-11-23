@@ -17,11 +17,11 @@ class MemoryMap {
     VT_Temporary
   };
   MemoryMap() {
-    address_to_var.assign(1000, "");
+    address_to_var.assign(kMemSize, "");
     memory_pointers.emplace(VT_Global, AreaPointers(kGlobalStart));
     memory_pointers.emplace(VT_Local, AreaPointers(kLocalStart));
-    memory_pointers.emplace(VT_Constant, AreaPointers(kConstantStart));
     memory_pointers.emplace(VT_Temporary, AreaPointers(kTemporaryStart));
+    memory_pointers.emplace(VT_Constant, AreaPointers(kConstantStart));
   }
   void DeclareGlobal(string type, string name) {
     DeclareVariable(VT_Global, type, name);
@@ -98,13 +98,13 @@ class MemoryMap {
      if (lifetime == VT_Constant) start = kConstantStart;
      if (lifetime == VT_Temporary) start = kTemporaryStart;
 
-     if (type == "int") start += kIntOffset; 
-     if (type == "float") start += kFloatOffset; 
-     if (type == "string") start += kStringOffset; 
-     if (type == "bool") start += kBoolOffset; 
-     if (type == "char") start += kCharOffset; 
+     if (type == "int") start += kTypeOffset*0;
+     if (type == "float") start += kTypeOffset*1;
+     if (type == "string") start += kTypeOffset*2;
+     if (type == "bool") start += kTypeOffset*3;
+     if (type == "char") start += kTypeOffset*4;
 
-     for (int i = start; i < start + 50; i++) {
+     for (int i = start; i < start + kTypeOffset; i++) {
        if (address_to_var[i] == var_name) {
          return i;
        }
@@ -140,15 +140,16 @@ class MemoryMap {
   void ResetTemporaries() {
     memory_pointers.emplace(VT_Temporary, AreaPointers(kTemporaryStart));
   }
+  const int kGlobalStart = kMemSize/4*0, kLocalStart = kMemSize/4*1, kTemporaryStart = kMemSize/4*2, kConstantStart = kMemSize/4*3;
  private:
   vector<string> address_to_var;
   struct AreaPointers {
     AreaPointers(int area_start) {
-      next_int = area_start + kIntOffset;
-      next_float = area_start + kFloatOffset;
-      next_string = area_start + kStringOffset;
-      next_bool = area_start + kBoolOffset;
-      next_char = area_start + kCharOffset;
+      next_int = area_start + kMemSize/4/5*0;
+      next_float = area_start + kMemSize/4/5*1;
+      next_string = area_start + kMemSize/4/5*2;
+      next_bool = area_start + kMemSize/4/5*3;
+      next_char = area_start + kMemSize/4/5*4;
     }
     int next_int;
     int next_float;
@@ -157,8 +158,8 @@ class MemoryMap {
     int next_char;
   };
   map<VariableLifetime, AreaPointers> memory_pointers;
-  static const int kGlobalStart = 0, kLocalStart = 250, kConstantStart = 500, kTemporaryStart = 750;
-  static const int kIntOffset = 0, kFloatOffset = 50, kStringOffset = 100, kBoolOffset = 150, kCharOffset = 200;
+  const int kTypeOffset = kMemSize/4/5;
+  static const int kMemSize = 10000;
   string toString(int num) {
     stringstream ss;
     ss << num;

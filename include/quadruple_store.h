@@ -334,6 +334,9 @@ public:
   }
   // read after reading the signature of a function
   void declareFunc() {
+    quads.emplace_back("SCOPE", "PUSH", "", "");
+    counter++;
+
     if (inClass) {
       lastFuncName = lastClassName + "." + lastFuncName;
     }
@@ -342,9 +345,10 @@ public:
       semanticError("Redefinition of function " + lastFuncName);
     }
 
-    Function fn = Function(lastFuncName, lastReturnType, params, counter);
+    Function fn = Function(lastFuncName, lastReturnType, params, counter-1);
     functions[lastFuncName] = fn;
-    memory_map.DeclareGlobal(lastReturnType, "@" + lastFuncName);
+    if (lastReturnType != "void")
+      memory_map.DeclareGlobal(lastReturnType, "@" + lastFuncName);
 
     inFunction = true;
     for(auto& param: fn.params) {
@@ -538,6 +542,13 @@ public:
       semanticError(ss.str());
     }
 
+    if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
+      // push return address
+      string ct = getConstantVariable("int", toString(counter+3+numArgsExpected));
+      quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
+      counter++;
+    }
+
     // check fn args types and push them to the stack
     for (int i = 0; i < numArgs; i++) {
       string argType = typeStack.top();
@@ -554,18 +565,19 @@ public:
       operandStack.pop();
     }
 
-    if (lastIdName == "read") {
+    if (fnName == "read") {
       quads.emplace_back("READ", memory_map.Get("@" + fnName, fn.returnType), "", "");
       counter++;
-    } else if (lastIdName == "print") {
+    } else if (fnName == "print") {
       quads.emplace_back("PRINT", "", "", "");
       counter++;
-    } else {
-      // push return address
-      string ct = getConstantVariable("int", toString(counter+3));
-      quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
+    } else if (fnName == "itos") {
+      quads.emplace_back("ITOS", memory_map.Get("@" + fnName, fn.returnType), "", "");
       counter++;
-
+    } else if (fnName == "strcat") {
+      quads.emplace_back("STRCAT", memory_map.Get("@" + fnName, fn.returnType), "", "");
+      counter++;
+    } else {
       // goto function
       quads.emplace_back("GOTO", "", "", toString(fn.location));
       counter++;
@@ -574,7 +586,7 @@ public:
     typeStack.push(fn.returnType);
     if (fn.returnType != "void") {
       string tmp = getTemporalVariable(fn.returnType);
-      quads.emplace_back("=", memory_map.Get(tmp, "int"), "", memory_map.Get("@" + fnName, fn.returnType));
+      quads.emplace_back("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
       counter++;
       operandStack.push(tmp);
     }
@@ -656,12 +668,13 @@ public:
     }
 
     if (retType != "void") {
-      quads.emplace_back("=", memory_map.Get("@" + lastFuncName, functions[lastFuncName].returnType), "", memory_map.Get(operandStack.top(), functions[lastFuncName].returnType));
+      quads.emplace_back("=", memory_map.Get(operandStack.top(), functions[lastFuncName].returnType), "", memory_map.Get("@" + lastFuncName, functions[lastFuncName].returnType));
       counter++;
       operandStack.pop();
     }
 
-    string tmp = memory_map.Get(getTemporalVariable(retType), retType);
+    quads.emplace_back("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
+    counter++;
     quads.emplace_back("RETURN", "", "", "");
     counter++;
   }
@@ -710,6 +723,10 @@ public:
     functions["print"] = Function("print", "void", params);
     functions["read"] = Function("read", "string", vector<Param>());
     memory_map.DeclareGlobal("string", "@read");
+    functions["strcat"] = Function("strcat", "string", vector<Param>{ {"left", "string"}, {"right", "string"} });
+    memory_map.DeclareGlobal("string", "@strcat");
+    functions["itos"] = Function("itos", "string", vector<Param>{ { "number", "int" } });
+    memory_map.DeclareGlobal("string", "@itos");
 
     quads.emplace_back("GOTO", "", "", "");
     counter++;
