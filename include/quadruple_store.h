@@ -372,6 +372,7 @@ public:
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
+      typeIsArray = false;
       if (isTypeArray(lastType)) {
         splitArrayType(lastType, lastType, lastArraySize);
         typeIsArray = true;
