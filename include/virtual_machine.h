@@ -145,7 +145,7 @@ class VirtualMachine {
       ss << any_cast<int>(access_memory(ss2.str()));
       access_memory(write_address) = ss.str();
     } else if (quad.a == "VER") {
-      if (stoi(quad.b) < 0 || stoi(quad.b) >= stoi(quad.c)) {
+      if (access_memory(quad.b) < 0 || stoi(quad.b) >= stoi(quad.c)) {
         cout << "Invalid array access." << endl;
         exit(1);
       }
