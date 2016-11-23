@@ -575,10 +575,20 @@ public:
       ss << "function " << fnName << " expects " << numArgsExpected << " argument(s); found " << numArgs;
       semanticError(ss.str());
     }
+    int numPushes = 0;
+    for (Param param : params) {
+      if (isTypeArray(param.paramType)) {
+        string type; int size;
+        splitArrayType(param.paramType, type, size);
+        numPushes += size;
+      } else {
+        numPushes++;
+      }
+    }
 
     if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
       // push return address
-      string ct = getConstantVariable("int", toString(counter+3+numArgsExpected));
+      string ct = getConstantVariable("int", toString(counter+3+numPushes));
       quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
       counter++;
     }
@@ -637,7 +647,7 @@ public:
     splitArrayType(arrayType, type, size);
     int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
     for (int i = 0; i < size; i++) {
-      quads.emplace_back("PUSH", toString(baseMemory + size + i), "", "");
+      quads.emplace_back("PUSH", toString(baseMemory + i), "", "");
       counter++;
     }
 
