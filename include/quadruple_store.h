@@ -458,7 +458,9 @@ public:
     }
 
     for (Param param : params) {
-      if (isTypeArray(param.paramType)) {
+      if (isTypeClass(param.paramType)) {
+        rPopObject(param.paramName, param.paramType);
+      } else if (isTypeArray(param.paramType)) {
         popArray(param.paramName, param.paramType);
       } else {
         addQuad("POP", memory_map.Get(param.paramName, param.paramType), "", "");
@@ -486,7 +488,7 @@ public:
     }
   }
 
-  // Pops all of the attributes of an object to local memory, from its global variable
+  // Copies all of the attributes of an object to local memory, from its global variable
   void popObject(string className, string globalVariable) {
     assignObject("", globalVariable + ".", className);
   }
@@ -494,6 +496,22 @@ public:
   // When returning a method, copy the modified object into the global variable
   void pushObjectEnd(string globalName, string className) {
     assignObject(globalName + ".", "", className);
+  }
+
+  // Pops an object from the stack to receive it as a parameter
+  void rPopObject(string objectName, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto attribute = table.rbegin(); attribute != table.rend(); attribute++) {
+      string attrName = objectName + "." + attribute->first;
+      string attrType = attribute->second;
+      if (isTypeClass(attrType)) {
+        rPopObject(attrName, attrType);
+      } else if (isTypeArray(attrType)) {
+        popArray(attrName, attrType);
+      } else {
+        addQuad("POP", memory_map.Get(attrName, attrType), "", "");
+      }
+    }
   }
 
   // check that an array size supplied is valid
@@ -769,7 +787,9 @@ public:
       string arg = operandStack.top();
       operandStack.pop();
 
-      if (isTypeArray(paramType)) {
+      if (isTypeClass(paramType)) {
+        rPushObject(arg, paramType);
+      } else if (isTypeArray(paramType)) {
         pushArray(arg, paramType);
       } else {
         addQuad("PUSH", memory_map.Get(arg, paramType), "", "");
@@ -832,6 +852,21 @@ public:
   // After making a method call, copy the modified version of the object
   void popObjectEnd(string objectName, string globalName, string className) {
     assignObject(objectName + ".", globalName + ".", className);
+  }
+  // pushes object to stack to pass it as parameter
+  void rPushObject(string objectName, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto const &attribute : table) {
+      string attrName = objectName + "." + attribute.first;
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        rPushObject(attrName, attrType);
+      } else if (isTypeArray(attrType)) {
+        pushArray(attrName, attrType);
+      } else {
+        addQuad("PUSH", memory_map.Get(attrName, attrType), "", "");
+      }
+    }
   }
   // Gets how many pushes it will need for this class
   int getObjectSize(string className) {
