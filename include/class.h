@@ -5,9 +5,9 @@
 
 struct Class {
  public:
-  string name;
+  string name, parentClass;
   SymbolTable classSymbolTable;
-  Class(string name) {}
+  Class(string name): name(name), parentClass("") {}
   Class() {}
 };
 

@@ -26,6 +26,7 @@ if                { return IF; }
 else              { return ELSE; }
 return            { return RETURN; }
 class             { return CLASS; }
+extends           { return EXTENDS; }
 -?[0-9]+\.[0-9]+  { yylval.sval = strdup(yytext); return C_FLOAT; }
 -?[0-9]+          { yylval.sval = strdup(yytext); return C_INT; }
 true|false        { yylval.sval = strdup(yytext); return C_BOOL; }

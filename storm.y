@@ -53,6 +53,7 @@ void yyerror(const char *s);
 %token ELSE
 %token RETURN
 %token CLASS
+%token EXTENDS
 %token UN_OP_P0
 %token BIN_OP_P1
 %token BIN_OP_P2
@@ -120,9 +121,12 @@ return_stm:
 type:
   type_aux { quadStore.lastType = string(yylval.sval); };
 type_aux: 
-  T_INT | T_FLOAT | T_STRING | T_CHAR | T_BOOL | id { quadStore.validateType(); };
+  T_INT | T_FLOAT | T_STRING | T_CHAR | T_BOOL 
+  | id { quadStore.lastObjectType = quadStore.lastIdName; quadStore.isObjectType = true; quadStore.validateType(); };
 class_declr:
-  CLASS id { quadStore.declareClass(); } '{' attribute_declr method_declr '}' { quadStore.endClass(); };
+  CLASS id { quadStore.declareClass(); } parent_class '{' attribute_declr method_declr '}' { quadStore.endClass(); };
+parent_class:
+  | EXTENDS id { quadStore.setParentClass(); }
 attribute_declr:
   | var_declr attribute_declr;
 method_declr:

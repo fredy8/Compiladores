@@ -369,26 +369,29 @@ public:
   void declareObject(string className, string objectPrefix) {
     bool tmpInClass = inClass;
     inClass = false;
-    SymbolTable table = classes[className].classSymbolTable;
-    for (auto const &attribute : table) {
-      string attrName = attribute.first;
-      string attrType = attribute.second;
-      typeIsArray = false;
-      isObjectType = false;
-      if (isTypeArray(attrType)) {
-        string type; int size;
-        splitArrayType(attrType, type, size);
-        lastType = type;
-        lastArraySize = size;
-        typeIsArray = true;
-      } else if (isTypeClass(attrType)) {
-        lastObjectType = attrType;
-        isObjectType = true;
-      } else {
-        lastType = attrType;
+    while (className != "") {
+      SymbolTable table = classes[className].classSymbolTable;
+      for (auto const &attribute : table) {
+        string attrName = attribute.first;
+        string attrType = attribute.second;
+        typeIsArray = false;
+        isObjectType = false;
+        if (isTypeArray(attrType)) {
+          string type; int size;
+          splitArrayType(attrType, type, size);
+          lastType = type;
+          lastArraySize = size;
+          typeIsArray = true;
+        } else if (isTypeClass(attrType)) {
+          lastObjectType = attrType;
+          isObjectType = true;
+        } else {
+          lastType = attrType;
+        }
+        lastIdName = objectPrefix + attrName;
+        declareVar();
       }
-      lastIdName = objectPrefix + attrName;
-      declareVar();
+      className = classes[className].parentClass;
     }
     inClass = tmpInClass;
   }
@@ -546,6 +549,11 @@ public:
     stringstream ss;
     ss << "class declared: " << lastIdName << endl;
     debug(ss.str());
+  }
+
+  // called when a class inherits from another
+  void setParentClass() {
+    classes[lastClassName].parentClass = lastIdName;
   }
 
   // called when finishing reading a class

@@ -1,0 +1,21 @@
+class A {
+  int x;
+}
+
+class B extends A {
+  int y;
+  function void setX(int xx) {
+    x = xx;
+  }
+  function int getX() {
+    return x;
+  }
+}
+
+function int main() {
+  B b;
+  b.setX(3);
+  int c;
+  c = (b.getX());
+  print(itos(c));
+}
