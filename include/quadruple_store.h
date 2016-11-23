@@ -292,6 +292,9 @@ public:
   }
   // Called after reading a parameter from a function
   void declareParam() {
+    if (typeIsArray) {
+      lastType += "[" + toString(lastArraySize) + "]";
+    }
     params.push_back(Param(lastIdName, lastType));
   }
   // called after reading a variable declaration
@@ -321,10 +324,10 @@ public:
     
     if (typeIsArray) {
       cout << "array ";
-      table->operator[](lastIdName) = SymbolTableData(lastType, lastArraySize);
+      table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
       memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
     } else {
-      table->operator[](lastIdName) = SymbolTableData(lastType);
+      table->operator[](lastIdName) = lastType;
       memory_map.DeclareVariable(scope, lastType, lastIdName);
     }
 
@@ -354,8 +357,12 @@ public:
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
+      if (isTypeArray(lastType)) {
+        splitArrayType(lastType, lastType, lastArraySize);
+        typeIsArray = true;
+      }
       declareVar();
-    } 
+    }
 
     for (Param param : params) {
       quads.emplace_back("POP", memory_map.Get(param.paramName, param.paramType), "", "");
@@ -446,40 +453,52 @@ public:
   // first check global score, then function scope, then class scope
   string getSymbolType(string varName) {
     if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName].type;
+      return globalScopeSymbolTable[varName];
     }
 
     if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName].type;
+      return functions[lastFuncName].localSymbolTable[varName];
     }
 
     if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName].type;
+      return classes[lastClassName].classSymbolTable[varName];
     }
 
     return "";
   }
 
   // returns whether the variable is an array
-  bool isSymbolArray(string varName) {
-    return getSymbolArraySize(varName) != -1;
+  bool isArraySymbol(string varName) {
+    return isTypeArray(getSymbolType(varName));
   }
 
   // returns the size of an array
-  int getSymbolArraySize(string varName) {
-    if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
-      return globalScopeSymbolTable[varName].size;
-    }
+  int getArraySize(string varName) {
+    string type;
+    int size;
+    splitArrayType(getSymbolType(varName), type, size);
+    return size;
+  }
 
-    if (inFunction && functions[lastFuncName].localSymbolTable.count(varName)) {
-      return functions[lastFuncName].localSymbolTable[varName].size;
-    }
+  // return the type of an array
+  string getArrayType(string varName) {
+    string type;
+    int size;
+    splitArrayType(getSymbolType(varName), type, size);
+    return type;
+  }
 
-    if (inClass && classes[lastClassName].classSymbolTable.count(varName)) {
-      return classes[lastClassName].classSymbolTable[varName].size;
-    }
+  // Returns whether this type represents an array
+  bool isTypeArray(string type) {
+    return type.find('[') != string::npos;
+  }
 
-    return -1;
+  // Splits an array type into its basic type and size
+  void splitArrayType(string arrayType, string &type, int &size) {
+    int bracket = arrayType.find('['), l = arrayType.length();
+    string number = arrayType.substr(bracket + 1, l - bracket - 2);
+    type = arrayType.substr(0, bracket);
+    size = atoi(number.c_str());
   }
 
   // called after reading the function name of a method call
@@ -600,7 +619,7 @@ public:
   }
   // called after reading the variable name of an array type when accessing an array
   void initArrAccess() {
-    if (!isSymbolArray(lastIdName)) {
+    if (!isArraySymbol(lastIdName)) {
       semanticError("Variable is not an array: " + lastIdName);
     }
     arrayIdStack.push(lastIdName);
@@ -617,8 +636,8 @@ public:
     operandStack.pop();
     string arrayId = arrayIdStack.top();
     arrayIdStack.pop();
-    string arrayType = getSymbolType(arrayId);
-    int arraySize = getSymbolArraySize(arrayId);
+    string arrayType = getArrayType(arrayId);
+    int arraySize = getArraySize(arrayId);
     string arrayMemory = memory_map.Get(arrayId, arrayType);
     string indexMemory = memory_map.Get(index, "int");
 
@@ -652,8 +671,6 @@ public:
     string type = getSymbolType(lastIdName);
     if (type == "") {
       semanticError("Use of undeclared variable: " + lastIdName);
-    } else if (isSymbolArray(lastIdName)) {
-      semanticError("Can't use array variable without index: " + lastIdName);
     }
 
     pushOperand(lastIdName, type);
