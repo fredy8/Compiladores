@@ -1,0 +1,29 @@
+class Array {
+  int arr[20];
+  function void set(int index, int value) {
+    .arr[index] = value;
+    return;
+  }
+  function int get(int index) {
+    return arr[index];
+  }
+  function int getSize() {
+    return 20;
+  }
+}
+
+function int main() {
+  int i, s;
+  Array array;
+  s = (array.getSize());
+  for (i = 0; i < s; i = i + 1) {
+    array.set(i, 20 - i);
+  }
+  for (i = 0; i < s; i = i + 1) {
+    print("arr ");
+    print(itos(i));
+    print(" is ");
+    print(itos(array.get(i)));
+    print("\n");
+  }
+}
