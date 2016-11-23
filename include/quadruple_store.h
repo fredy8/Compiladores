@@ -16,11 +16,11 @@ using namespace std;
 class QuadrupleStore {
 public:
   MemoryMap memory_map;
-  std::vector<Quadruple> quads;
-  std::stack<std::string> typeStack;
-  std::stack<std::string> operandStack;
-  std::stack<std::string> operatorStack;
-  std::stack<int> jumpStack;
+  vector<Quadruple> quads;
+  stack<string> typeStack;
+  stack<string> operandStack;
+  stack<string> operatorStack;
+  stack<int> jumpStack;
   int counter = 0;
   int tempCounter = 0;
   int constCounter = 0;
@@ -98,16 +98,16 @@ public:
       cout << endl << endl;
     }
   }
-  void pushOperand(std::string operand, std::string type) {
+  void pushOperand(string operand, string type) {
     operandStack.push(operand);
     typeStack.push(type);
   }
-  void pushConstant(std::string type, string value) {
+  void pushConstant(string type, string value) {
     cout << value << "*****" << endl;
     operandStack.push(getConstantVariable(type, value));
     typeStack.push(type);
   }
-  void pushOperator(std::string oper) {
+  void pushOperator(string oper) {
     operatorStack.push(oper);
   }
   void popOperator(int priority) {
@@ -115,7 +115,7 @@ public:
     if (operatorStack.empty()) {
       return;
     }
-    std::string oper = operatorStack.top();
+    string oper = operatorStack.top();
     int operPriority = getOperPriority(oper);
     if (operPriority != priority) {
       return;
@@ -123,7 +123,7 @@ public:
     operatorStack.pop();
 
     // Pop operands and types from their stacks
-    std::string type1 = "", operand1 = "", type2 = "", operand2 = "";
+    string type1 = "", operand1 = "", type2 = "", operand2 = "";
     if (operPriority != 0) { // If it's a binary operator
       type2 = typeStack.top();
       operand2 = operandStack.top();
@@ -136,16 +136,16 @@ public:
     operandStack.pop();
 
     // Check whether it's a valid operation with the semantic cube
-    std::string resultType = Cube::getOperationType(oper, type1, type2);
+    string resultType = Cube::getOperationType(oper, type1, type2);
     if (resultType == "") {
       semanticError("Invalid operation: " + type1 + " " + oper + " " + type2);
     }
 
     // Push new quadruple and result to stacks
-    std::string result = getTemporalVariable(resultType);
-    std::string b = memory_map.Get(operand1, type1);
-    std::string c = (operand2 == "" ? "" : memory_map.Get(operand2, type2));
-    std::string d = memory_map.Get(result, resultType);
+    string result = getTemporalVariable(resultType);
+    string b = memory_map.Get(operand1, type1);
+    string c = (operand2 == "" ? "" : memory_map.Get(operand2, type2));
+    string d = memory_map.Get(result, resultType);
     pushOperand(result, resultType);
     addQuad(oper, b, c, d);
   }
@@ -160,9 +160,9 @@ public:
   }
   void ifStart() {
     // Get information on the conditional and validate it's a bool
-    std::string type = typeStack.top();
+    string type = typeStack.top();
     typeStack.pop();
-    std::string condition = operandStack.top();
+    string condition = operandStack.top();
     operandStack.pop();
     if (type != "bool") {
       semanticError("Expected bool on if statement");
@@ -192,9 +192,9 @@ public:
   }
   void whileBlockStart() {
     // Get information on the conditional and validate it's a bool
-    std::string type = typeStack.top();
+    string type = typeStack.top();
     typeStack.pop();
-    std::string condition = operandStack.top();
+    string condition = operandStack.top();
     operandStack.pop();
     if (type != "bool") {
       semanticError("Expected bool on while statement");
@@ -222,9 +222,9 @@ public:
   }
   void doWhileEnd() {
     // Get information on the conditional and validate it's a bool
-    std::string type = typeStack.top();
+    string type = typeStack.top();
     typeStack.pop();
-    std::string condition = operandStack.top();
+    string condition = operandStack.top();
     operandStack.pop();
     if (type != "bool") {
       semanticError("Expected bool on do while statement");
@@ -240,9 +240,9 @@ public:
   }
   void forConditionEnd() {
     // Get information on the conditional and validate it's a bool
-    std::string type = typeStack.top();
+    string type = typeStack.top();
     typeStack.pop();
-    std::string condition = operandStack.top();
+    string condition = operandStack.top();
     operandStack.pop();
     if (type != "bool") {
       semanticError("Expected bool on do while statement");
@@ -552,13 +552,13 @@ public:
     ss << "found assignment" << endl;
     debug(ss.str());
 
-    std::string expression = operandStack.top();
+    string expression = operandStack.top();
     operandStack.pop();
-    std::string expressionType = typeStack.top();
+    string expressionType = typeStack.top();
     typeStack.pop();
-    std::string assignable = operandStack.top();
+    string assignable = operandStack.top();
     operandStack.pop();
-    std::string assignableType = typeStack.top();
+    string assignableType = typeStack.top();
     typeStack.pop();
     if (expressionType != assignableType) {
       semanticError("Expected " + assignableType + " found " + expressionType);
@@ -795,7 +795,7 @@ public:
   }
   void print() {
     for (int i = 0; i < quads.size(); i++) {
-      std::cout << i << ": [ " << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << std::endl; 
+      cout << i << ": [ " << quads[i].a << ", " << quads[i].b << ", " << quads[i].c << ", " << quads[i].d << "]" << endl; 
     }
   }
   void begin() {
@@ -821,15 +821,15 @@ private:
     quads.emplace_back(a, b, c, d);
     counter++;
   }
-  std::string getTemporalVariable(string type) {
-    std::stringstream ss;
+  string getTemporalVariable(string type) {
+    stringstream ss;
     ss << "*t" << tempCounter;
     tempCounter++;
     memory_map.DeclareTemporary(type, ss.str());
     return ss.str();
   }
-  std::string getConstantVariable(string type, string value) {
-    std::stringstream ss;
+  string getConstantVariable(string type, string value) {
+    stringstream ss;
     ss << "$c" << constCounter;
     constCounter++;
     memory_map.DeclareConstant(type, ss.str());
@@ -837,13 +837,13 @@ private:
     return ss.str();
   }
   string getTemporalArray(string type, int size) {
-    std::stringstream ss;
+    stringstream ss;
     ss << "*t" << tempCounter;
     tempCounter++;
     memory_map.DeclareTemporaryArray(type, ss.str(), size);
     return ss.str();
   }
-  int getOperPriority(std::string oper) {
+  int getOperPriority(string oper) {
     if (oper == "!") return 0;
     if (oper == "*") return 1;
     if (oper == "/") return 1;
@@ -861,12 +861,12 @@ private:
     assert(false);
     return 0;
   }
-  void semanticError(std::string err) {
-    std::cout << "Semantic error: " << err << std::endl;
+  void semanticError(string err) {
+    cout << "Semantic error: " << err << endl;
     exit(1);
   }
-  std::string toString(int num) {
-    std::stringstream ss;
+  string toString(int num) {
+    stringstream ss;
     ss << num;
     return ss.str();
   }
