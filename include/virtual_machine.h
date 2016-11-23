@@ -145,7 +145,8 @@ class VirtualMachine {
       ss << any_cast<int>(access_memory(ss2.str()));
       access_memory(write_address) = ss.str();
     } else if (quad.a == "VER") {
-      if (access_memory(quad.b) < 0 || stoi(quad.b) >= stoi(quad.c)) {
+      int idx = any_cast<int>(access_memory(quad.b));
+      if (idx < 0 || idx >= stoi(quad.c)) {
         cout << "Invalid array access." << endl;
         exit(1);
       }
@@ -179,6 +180,14 @@ class VirtualMachine {
     return atof(str.c_str());
   }
   any& access_memory(string index) {
+    if (index[0] == '&') {
+      index.substr(1);
+      int idx = any_cast<int>(memory.top()[stoi(index)]);
+      stringstream ss;
+      ss << idx;
+      index = ss.str();
+    }
+
     return memory.top()[stoi(index)];
   }
   static const int kMemSize = 10000;
