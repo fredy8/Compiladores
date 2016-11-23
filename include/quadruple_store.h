@@ -326,7 +326,11 @@ public:
       semanticError("Redeclaration of " + lastIdName);
     }
     
-    if (typeIsArray) {
+    if (isTypeClass(lastType)) {
+      cout << "object ";
+      table->operator[](lastIdName) = lastType;
+      declareObject(lastType, lastIdName);
+    } else if (typeIsArray) {
       cout << "array ";
       table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
       memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
@@ -338,6 +342,26 @@ public:
     stringstream ss;
     ss << "var declared: " << lastIdName << endl;
     debug(ss.str());
+  }
+  // it is used to get the memory for an instance of a custom class 
+  void declareObject(string className, string objectId) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto attribute : table) {
+      string attrName = attribute->first;
+      string attrType = attribute->second;
+      typeIsArray = false;
+      if (isTypeArray(attrType)) {
+        string type; int size;
+        splitArrayType(attrType, type, size);
+        lastType = type;
+        lastArraySize = size;
+        typeIsArray = true;
+      } else {
+        lastType = attrType;
+      }
+      lastIdName = objectId + "." + attrName;
+      declareVar();
+    }
   }
   // read after reading the signature of a function
   void declareFunc() {
@@ -538,6 +562,11 @@ public:
     string number = arrayType.substr(bracket + 1, l - bracket - 2);
     type = arrayType.substr(0, bracket);
     size = atoi(number.c_str());
+  }
+
+  // Returns whether this type is a custom class
+  bool isTypeClass(string type) {
+    return classes.find(type) != classes.end();
   }
 
   // called after reading the function name of a method call
