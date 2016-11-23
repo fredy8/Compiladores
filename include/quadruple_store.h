@@ -552,8 +552,24 @@ public:
     if (expressionType != assignableType) {
       semanticError("Expected " + assignableType + " found " + expressionType);
     }
-    quads.push_back(Quadruple("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType)));
-    counter++;
+    if (isTypeArray(assignableType)) {
+      assignArray(assignable, expression, assignableType);
+    } else {
+      quads.push_back(Quadruple("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType)));
+      counter++;
+    }
+  }
+  // Used to copy arrays
+  void assignArray(string arrayName1, string arrayName2, string arrayType) {
+    string type;
+    int size;
+    splitArrayType(arrayType, type, size);
+    int baseMemory1 = atoi(memory_map.Get(arrayName1, type).c_str());
+    int baseMemory2 = atoi(memory_map.Get(arrayName2, type).c_str());
+    for (int i = 0; i < size; i++) {
+      quads.emplace_back(")", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
+      counter++;
+    }
   }
   // called after calling a function
   // foo(12, "abc")
