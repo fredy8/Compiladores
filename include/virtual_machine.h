@@ -106,7 +106,17 @@ class VirtualMachine {
       access_memory(write_address) = access_memory(ss.str());
       stack_.pop();
     } else if (quad.a == "PUSH") {
-      int num = stoi(quad.b);
+      string index = quad.b;
+      if (index[0] == '&') {
+        index = index.substr(1);
+        int idx = any_cast<int>(memory.top()[stoi(index)]);
+        cout << "DEREF " << index << " " << idx << endl;
+        stringstream ss;
+        ss << idx;
+        index = ss.str();
+      }
+
+      int num = stoi(index);
       stack_.push(num);
     } else if (quad.a == "GOTOF") {
       string condition_address = quad.b;
@@ -181,8 +191,9 @@ class VirtualMachine {
   }
   any& access_memory(string index) {
     if (index[0] == '&') {
-      index.substr(1);
+      index = index.substr(1);
       int idx = any_cast<int>(memory.top()[stoi(index)]);
+      cout << "DEREF " << index << " " << idx << endl;
       stringstream ss;
       ss << idx;
       index = ss.str();
