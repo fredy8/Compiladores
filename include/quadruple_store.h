@@ -292,6 +292,9 @@ public:
   }
   // Called after reading a parameter from a function
   void declareParam() {
+    if (typeIsArray) {
+      lastType += "[" + toString(lastArraySize) + "]";
+    }
     params.push_back(Param(lastIdName, lastType));
   }
   // called after reading a variable declaration
@@ -350,8 +353,12 @@ public:
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
+      if (isTypeArray(lastType)) {
+        splitArrayType(lastType, lastType, lastArraySize);
+        typeIsArray = true;
+      }
       declareVar();
-    } 
+    }
 
     for (Param param : params) {
       quads.emplace_back("POP", memory_map.Get(param.paramName, param.paramType), "", "");
@@ -458,22 +465,36 @@ public:
 
   // returns whether the variable is an array
   bool isArraySymbol(string varName) {
-    return getSymbolType(varName).find('[') != string::npos;
+    return isTypeArray(getSymbolType(varName));
   }
 
   // returns the size of an array
   int getArraySize(string varName) {
-    string type = getSymbolType(varName);
-    int bracket = type.find('['), l = type.length();
-    string number = type.substr(bracket + 1, l - bracket - 2);
-    cout << "!!! Array size: [" << number << "]" << endl;
-    return atoi(number.c_str());
+    string type;
+    int size;
+    splitArrayType(getSymbolType(varName), type, size);
+    return size;
   }
 
   // return the type of an array
   string getArrayType(string varName) {
-    string type = getSymbolType(varName);
-    return type.substr(0, type.find('['));
+    string type;
+    int size;
+    splitArrayType(getSymbolType(varName), type, size);
+    return type;
+  }
+
+  // Returns whether this type represents an array
+  bool isTypeArray(string type) {
+    return type.find('[') != string::npos;
+  }
+
+  // Splits an array type into its basic type and size
+  void splitArrayType(string arrayType, string &type, int &size) {
+    int bracket = arrayType.find('['), l = arrayType.length();
+    string number = arrayType.substr(bracket + 1, l - bracket - 2);
+    type = arrayType.substr(0, bracket);
+    size = atoi(number.c_str());
   }
 
   // called after reading the function name of a method call
@@ -638,8 +659,6 @@ public:
     string type = getSymbolType(lastIdName);
     if (type == "") {
       semanticError("Use of undeclared variable: " + lastIdName);
-    } else if (isArraySymbol(lastIdName)) {
-      semanticError("Can't use array variable without index: " + lastIdName);
     }
 
     pushOperand(lastIdName, type);
