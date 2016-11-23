@@ -54,6 +54,8 @@ public:
   set<string> types;
   // true if currently inside a function
   bool inFunction = false;
+  // true if you want to declare a temporary variable
+  bool isTemporary = false;
   // true if currently inside a class
   bool inClass = false;
   // true if the fn call is a method
@@ -317,6 +319,9 @@ public:
       declareObjectAttribute();
       return;
     }
+    if (isTemporary) {
+      scope = MemoryMap::VT_Temporary;
+    }
 
     if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
       semanticError("Redeclaration of " + varName);
@@ -362,7 +367,6 @@ public:
   }
   // it is used to get the memory for an instance of a custom class 
   void declareObject(string className, string objectPrefix) {
-    cout << "DECLARING OBJECT " << objectPrefix << " " << className << endl;
     bool tmpInClass = inClass;
     inClass = false;
     SymbolTable table = classes[className].classSymbolTable;
@@ -370,6 +374,7 @@ public:
       string attrName = attribute.first;
       string attrType = attribute.second;
       typeIsArray = false;
+      isObjectType = false;
       if (isTypeArray(attrType)) {
         string type; int size;
         splitArrayType(attrType, type, size);
@@ -387,11 +392,19 @@ public:
     }
     inClass = tmpInClass;
   }
+  // Declares a global object for method calling
   void declareGlobalObject(string className, string globalName) {
     bool tmpInFunction = inFunction;
     inFunction = false;
     declareObject(className, globalName + ".");
     inFunction = tmpInFunction;
+  }
+  // Declares a temporary object for function return values
+  void declareTemporaryObject(string className, string temporaryName) {
+    bool tmpIsTemporary = isTemporary;
+    isTemporary = true;
+    declareObject(className, temporaryName + ".");
+    isTemporary = tmpIsTemporary;
   }
   // read after reading the signature of a function
   void declareFunc() {
@@ -412,7 +425,9 @@ public:
     Function fn = Function(lastFuncName, lastReturnType, params, counter-1);
     functions[lastFuncName] = fn;
     if (lastReturnType != "void") {
-      if (isTypeArray(lastReturnType)) {
+      if (isTypeClass(lastReturnType)) {
+        declareGlobalObject(lastReturnType, "@" + lastFuncName);
+      } else if (isTypeArray(lastReturnType)) {
         string type; int size;
         splitArrayType(lastReturnType, type, size);
         memory_map.DeclareGlobalArray(type, "@" + lastFuncName, size);
@@ -657,7 +672,9 @@ public:
     if (expressionType != assignableType) {
       semanticError("Expected " + assignableType + " found " + expressionType);
     }
-    if (isTypeArray(assignableType)) {
+    if (isTypeClass(assignableType)) {
+      assignObject(assignable + ".", expression + ".", assignableType);
+    } else if (isTypeArray(assignableType)) {
       assignArray(assignable, expression, assignableType);
     } else {
       addQuad("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType));
@@ -779,13 +796,16 @@ public:
 
     if (fn.returnType != "void") {
       string tmp;
-      if (isTypeArray(fn.returnType)) {
+      if (isTypeClass(fn.returnType)) {
+        tmp = getTemporalObject(fn.returnType);
+        assignObject(tmp + ".", "@" + fnName + ".", fn.returnType);
+      } else if (isTypeArray(fn.returnType)) {
         string type; int size;
         splitArrayType(fn.returnType, type, size);
         tmp = getTemporalArray(type, size);
         assignArray(tmp, "@" + fnName, fn.returnType);
       } else {
-        tmp = getTemporalVariable(fn.returnType); // alberto
+        tmp = getTemporalVariable(fn.returnType);
         addQuad("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
       }
       operandStack.push(tmp);
@@ -905,7 +925,10 @@ public:
     }
 
     if (retType != "void") {
-      if (isTypeArray(functionReturnType)) {
+      if (isTypeClass(functionReturnType)) {
+        assignObject("@" + lastFuncName + ".", operandStack.top() + ".", functionReturnType);
+        operandStack.pop();
+      } else if (isTypeArray(functionReturnType)) {
         assignArray("@" + lastFuncName, operandStack.top(), functionReturnType);
         operandStack.pop();
       } else {
@@ -1008,7 +1031,8 @@ private:
     ss << "*t" << tempCounter;
     tempCounter++;
     string temporalObject = ss.str();
-    declareObject(className, temporalObject + ".");
+    declareTemporaryObject(className, temporalObject);
+    return ss.str();
   }
   int getOperPriority(string oper) {
     if (oper == "!") return 0;
