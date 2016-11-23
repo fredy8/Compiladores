@@ -305,20 +305,21 @@ public:
   void declareVar() {
     SymbolTable* table = &globalScopeSymbolTable;
     MemoryMap::VariableLifetime scope = MemoryMap::VT_Global; 
+    string varName = lastIdName;
     if (inFunction) {
       scope = MemoryMap::VT_Local;
       table = &functions[lastFuncName].localSymbolTable;
 
-      if (table->find(lastIdName) != table->end()) {
-        semanticError("Redeclaration of " + lastIdName);
+      if (table->find(varName) != table->end()) {
+        semanticError("Redeclaration of " + varName);
       }
     } else if (inClass) {
       declareObjectAttribute();
       return;
     }
 
-    if (globalScopeSymbolTable.find(lastIdName) != globalScopeSymbolTable.end()) {
-      semanticError("Redeclaration of " + lastIdName);
+    if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
+      semanticError("Redeclaration of " + varName);
     }
     
     stringstream ss;
@@ -327,19 +328,19 @@ public:
       semanticError("You can't declare an array of a custom class.");
     } else if (isObjectType) {
       isObjectType = false;
-      table->operator[](lastIdName) = lastObjectType;
-      declareObject(lastObjectType, lastIdName + ".");
+      table->operator[](varName) = lastObjectType;
+      declareObject(lastObjectType, varName + ".");
       ss << "object ";
     } else if (typeIsArray) {
       ss << "array ";
-      table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
-      memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
+      table->operator[](varName) = lastType + "[" + toString(lastArraySize) + "]";
+      memory_map.DeclareArrayVariable(scope, lastType, varName, lastArraySize);
     } else {
-      table->operator[](lastIdName) = lastType;
-      memory_map.DeclareVariable(scope, lastType, lastIdName);
+      table->operator[](varName) = lastType;
+      memory_map.DeclareVariable(scope, lastType, varName);
     }
 
-    ss << "var declared: " << lastIdName << endl;
+    ss << "var declared: " << varName << endl;
     debug(ss.str());
   }
   // it is used to add attributes to a class
@@ -361,6 +362,7 @@ public:
   }
   // it is used to get the memory for an instance of a custom class 
   void declareObject(string className, string objectPrefix) {
+    cout << "DECLARING OBJECT " << objectPrefix << " " << className << endl;
     bool tmpInClass = inClass;
     inClass = false;
     SymbolTable table = classes[className].classSymbolTable;
