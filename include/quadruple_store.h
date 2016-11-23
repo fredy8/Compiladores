@@ -634,7 +634,12 @@ public:
   // Returns the class given a method name
   string getClassFromMethod(string method) {
     int dot = method.find('.');
-    return method.substr(0, dot);
+    return (dot == string::npos ? "" : method.substr(0, dot));
+  }
+
+  // returns whether the function has a class prefix
+  bool isMethod(string function) {
+    return getClassFromMethod(function) != "";
   }
 
   // returns the type of a variable
@@ -779,6 +784,8 @@ public:
     if (isMethodCall) {
       objectName = objectCallStack.top();
       objectCallStack.pop();
+    } else if (isMethod(fnName)) {
+      isMethodCall = true;
     }
     stringstream ss;
     ss << "function call ended: " << fnName << endl;
@@ -891,11 +898,13 @@ public:
   }
   // Pushes the object to a global variable to be accessed by the method
   void pushObject(string objectName, string globalName, string className) {
-    assignObject(globalName + ".", objectName + ".", className);
+    string objectPrefix = objectName + (objectName == "" ? "" : ".");
+    assignObject(globalName + ".", objectPrefix, className);
   }
   // After making a method call, copy the modified version of the object
   void popObjectEnd(string objectName, string globalName, string className) {
-    assignObject(objectName + ".", globalName + ".", className);
+    string objectPrefix = objectName + (objectName == "" ? "" : ".");
+    assignObject(objectPrefix, globalName + ".", className);
   }
   // pushes object to stack to pass it as parameter
   void rPushObject(string objectName, string className) {
