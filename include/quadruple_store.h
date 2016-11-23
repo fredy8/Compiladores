@@ -365,8 +365,12 @@ public:
     }
 
     for (Param param : params) {
-      quads.emplace_back("POP", memory_map.Get(param.paramName, param.paramType), "", "");
-      counter++;
+      if (isTypeArray(param.paramType)) {
+        popArray(param.paramName, param.paramType);
+      } else {
+        quads.emplace_back("POP", memory_map.Get(param.paramName, param.paramType), "", "");
+        counter++;
+      }
     }
 
     params.clear();
@@ -377,6 +381,17 @@ public:
 
     if (lastFuncName == "main") {
       quads[0].d = toString(counter);
+    }
+  }
+  // Pops each of the elements of the array for a function declaration
+  void popArray(string arrayName, string arrayType) {
+    string type;
+    int size;
+    splitArrayType(arrayType, type, size);
+    int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
+    for (int i = 0; i < size; i++) {
+      quads.emplace_back("POP", toString(baseMemory + size - 1 - i), "", "");
+      counter++;
     }
   }
 
@@ -578,10 +593,15 @@ public:
         ss << "function " << fnName << " expects " << paramType << " for its parameter #" << (params.size()-i) << "; found " << argType;
         semanticError(ss.str());
       }
-
-      quads.emplace_back("PUSH", memory_map.Get(operandStack.top(), paramType), "", "");
-      counter++;
+      string arg = operandStack.top();
       operandStack.pop();
+
+      if (isTypeArray(paramType)) {
+        pushArray(arg, paramType);
+      } else {
+        quads.emplace_back("PUSH", memory_map.Get(arg, paramType), "", "");
+        counter++;
+      }
     }
 
     if (fnName == "read") {
@@ -609,6 +629,18 @@ public:
       counter++;
       operandStack.push(tmp);
     }
+  }
+  // Pushes each element of the array separately into the runtime stack
+  void pushArray(string arrayName, string arrayType) {
+    string type;
+    int size;
+    splitArrayType(arrayType, type, size);
+    int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
+    for (int i = 0; i < size; i++) {
+      quads.emplace_back("PUSH", toString(baseMemory + size + i), "", "");
+      counter++;
+    }
+
   }
   // called after reading a literal
   void literal(string type, string value) {
