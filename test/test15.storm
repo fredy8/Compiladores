@@ -1,9 +1,9 @@
 class Ball {
   int x;
   float y;
-  function int setX(int sx) {
+  function void setX(int sx) {
     x = sx;
-    return 0;
+    return;
   }
   function int getX() {
     return x;

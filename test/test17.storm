@@ -1,0 +1,24 @@
+class Dot {
+  int x;
+  function void setX(int sx) {
+    x = sx;
+    return;
+  }
+  function int getX() {
+    return x;
+  }
+}
+
+function Dot miniDot() {
+  Dot dot;
+  dot.setX(1);
+  return dot;
+}
+
+function int main() {
+  Dot dot;
+  dot = miniDot();
+  int x;
+  x = (dot.getX());
+  print(itos(x));  
+}
