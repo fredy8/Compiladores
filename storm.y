@@ -122,10 +122,11 @@ type:
 type_aux: 
   T_INT | T_FLOAT | T_STRING | T_CHAR | T_BOOL | id { quadStore.validateType(); };
 class_declr:
-  CLASS id { quadStore.declareClass(); } '{' class_declr_a '}' { quadStore.endClass(); };
-class_declr_a:
-  | var_declr class_declr_a
-  | function class_declr_a;
+  CLASS id { quadStore.declareClass(); } '{' attribute_declr method_declr '}' { quadStore.endClass(); };
+attribute_declr:
+  | var_declr attribute_declr;
+method_declr:
+  | function method_declr;
 expr:
   expr BIN_OP_P6 { quadStore.lastOperator = string(yylval.sval); quadStore._operator(); } expr6 { quadStore.operation(6); }
   | expr6;
