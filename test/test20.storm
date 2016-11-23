@@ -1,0 +1,21 @@
+class Clase {
+  int a;
+  function int diez() {
+    return 10;
+  }
+  function void funcion() {
+    a = diez();
+    return;
+  }
+  function int getA() {
+    return a;
+  }
+}
+
+function int main() {
+  Clase clase;
+  clase.funcion();
+  int a;
+  a = (clase.getA());
+  print(itos(a));
+}

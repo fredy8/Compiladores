@@ -1,0 +1,43 @@
+class Position {
+  int x, y;
+  function void setXY(int xx, int yy) {
+    x = xx;
+    yy = yy;
+    return;
+  }
+  function int getX() {
+    return x;
+  }
+  function int getY() {
+    return y;
+  }
+}
+
+class Ball {
+  Position pos;
+  function void set() {
+    int a;
+    a = 0;
+    pos.setXY(0, 0);
+    return;
+  }
+  function void move() {
+    int x, y;
+    x = (pos.getX());
+    y = (pos.getY());
+    pos.setXY(x + 3, y);
+    return;
+  }
+  function int getX() {
+    return pos.getX();
+  }
+}
+
+function int main() {
+  Ball ball;
+  int b;
+  ball.set();
+  ball.move();
+  b = (ball.getX());
+  print(itos(b));
+}

@@ -9,7 +9,7 @@
 #include "symbol_table.h"
 #include "memory_map.h"
 
-const bool DEBUG = false;
+const bool DEBUG = true, TRACE = false;
 
 using namespace std;
 
@@ -54,6 +54,8 @@ public:
   set<string> types;
   // true if currently inside a function
   bool inFunction = false;
+  // true if you want to declare a temporary variable
+  bool isTemporary = false;
   // true if currently inside a class
   bool inClass = false;
   // true if the fn call is a method
@@ -64,6 +66,15 @@ public:
   // When nested calls are made, this is necessary:
   // e.g. foo(bar())
   stack<string> fnCallStack;
+  // this stack goes along the previous fnCallStack, and maintains
+  // a boolean value indicating whether it's a method call or not
+  stack<bool> methodCallStack;
+  // keeps the name of the object the method was called on
+  stack<string> objectCallStack;
+  // stores the name of the last class
+  string lastObjectType;
+  // stores whether we are declaring an object
+  bool isObjectType;
   // contains the number of arguments supplied when calling a function
   stack<int> fnCallNumArgsStack;
   // keeps track of array variable names for nested access
@@ -87,15 +98,17 @@ public:
     cout << "----------------" << endl;
   }
   void debug(string message) {
-    cout << message << endl;
     if (DEBUG) {
-      cout << "c: continue\no: view operand stack" << endl;
-      string cmd;
-      while(cin >> cmd) {
-        if (cmd == "c") break;
-        if (cmd == "o") { printOperandStack(); break; }
+      cout << message << endl;
+      if (TRACE) {
+        cout << "c: continue\no: view operand stack" << endl;
+        string cmd;
+        while(cin >> cmd) {
+          if (cmd == "c") break;
+          if (cmd == "o") { printOperandStack(); break; }
+        }
+        cout << endl << endl;
       }
-      cout << endl << endl;
     }
   }
   void pushOperand(string operand, string type) {
@@ -103,7 +116,6 @@ public:
     typeStack.push(type);
   }
   void pushConstant(string type, string value) {
-    cout << value << "*****" << endl;
     operandStack.push(getConstantVariable(type, value));
     typeStack.push(type);
   }
@@ -213,7 +225,7 @@ public:
     // Modify quadruple to jump to when false
     quads[gotof].d = toString(counter);
     stringstream ss;
-    ss << "Ending while on " << counter << ", with jump on " << gotof << endl;
+    ss << "Ending while on " << counter << ", with jump on " << gotof;
     debug(ss.str());
   }
   void doWhileStart() {
@@ -297,37 +309,107 @@ public:
   void declareVar() {
     SymbolTable* table = &globalScopeSymbolTable;
     MemoryMap::VariableLifetime scope = MemoryMap::VT_Global; 
+    string varName = lastIdName;
     if (inFunction) {
       scope = MemoryMap::VT_Local;
       table = &functions[lastFuncName].localSymbolTable;
 
-      if (table->find(lastIdName) != table->end()) {
-        semanticError("Redeclaration of " + lastIdName);
+      if (table->find(varName) != table->end()) {
+        semanticError("Redeclaration of " + varName);
       }
     } else if (inClass) {
-      table = &classes[lastClassName].classSymbolTable;
-
-      if (table->find(lastIdName) != table->end()) {
-        semanticError("Redeclaration of " + lastIdName);
-      }
+      declareObjectAttribute();
+      return;
+    }
+    if (isTemporary) {
+      scope = MemoryMap::VT_Temporary;
     }
 
-    if (globalScopeSymbolTable.find(lastIdName) != globalScopeSymbolTable.end()) {
-      semanticError("Redeclaration of " + lastIdName);
+    if (globalScopeSymbolTable.find(varName) != globalScopeSymbolTable.end()) {
+      semanticError("Redeclaration of " + varName);
     }
     
-    if (typeIsArray) {
-      cout << "array ";
-      table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
-      memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
+    stringstream ss;
+
+    if (isObjectType && typeIsArray) {
+      semanticError("You can't declare an array of a custom class.");
+    } else if (isObjectType) {
+      isObjectType = false;
+      table->operator[](varName) = lastObjectType;
+      declareObject(lastObjectType, varName + ".");
+      ss << "object ";
+    } else if (typeIsArray) {
+      ss << "array ";
+      table->operator[](varName) = lastType + "[" + toString(lastArraySize) + "]";
+      memory_map.DeclareArrayVariable(scope, lastType, varName, lastArraySize);
     } else {
-      table->operator[](lastIdName) = lastType;
-      memory_map.DeclareVariable(scope, lastType, lastIdName);
+      table->operator[](varName) = lastType;
+      memory_map.DeclareVariable(scope, lastType, varName);
     }
 
-    stringstream ss;
-    ss << "var declared: " << lastIdName << endl;
+    ss << "var declared: " << varName;
     debug(ss.str());
+  }
+  // it is used to add attributes to a class
+  void declareObjectAttribute() {
+    SymbolTable* table = &classes[lastClassName].classSymbolTable;
+    if (table->find(lastIdName) != table->end()) {
+      semanticError("Redeclaration of attribute " + lastIdName + " in class " + lastClassName);
+    }
+    stringstream ss;
+    if (typeIsArray) {
+      ss << "array ";
+      table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
+    } else {
+      table->operator[](lastIdName) = lastType;
+    }
+
+    ss << "attribute declared: " << lastIdName;
+    debug(ss.str());
+  }
+  // it is used to get the memory for an instance of a custom class 
+  void declareObject(string className, string objectPrefix) {
+    bool tmpInClass = inClass;
+    inClass = false;
+    while (className != "") {
+      SymbolTable table = classes[className].classSymbolTable;
+      for (auto const &attribute : table) {
+        string attrName = attribute.first;
+        string attrType = attribute.second;
+        typeIsArray = false;
+        isObjectType = false;
+        if (isTypeArray(attrType)) {
+          string type; int size;
+          splitArrayType(attrType, type, size);
+          lastType = type;
+          lastArraySize = size;
+          typeIsArray = true;
+        } else if (isTypeClass(attrType)) {
+          lastObjectType = attrType;
+          isObjectType = true;
+        } else {
+          lastType = attrType;
+        }
+        lastIdName = objectPrefix + attrName;
+        declareVar();
+      }
+      className = classes[className].parentClass;
+    }
+    inClass = tmpInClass;
+  }
+  // Declares a global object for method calling
+  void declareGlobalObject(string className, string globalName) {
+    bool tmpInFunction = inFunction;
+    inFunction = false;
+    declareObject(className, globalName + ".");
+    inFunction = tmpInFunction;
+  }
+  // Declares a temporary object for function return values
+  void declareTemporaryObject(string className, string temporaryName) {
+    bool tmpIsTemporary = isTemporary;
+    isTemporary = true;
+    declareObject(className, temporaryName + ".");
+    isTemporary = tmpIsTemporary;
   }
   // read after reading the signature of a function
   void declareFunc() {
@@ -348,7 +430,9 @@ public:
     Function fn = Function(lastFuncName, lastReturnType, params, counter-1);
     functions[lastFuncName] = fn;
     if (lastReturnType != "void") {
-      if (isTypeArray(lastReturnType)) {
+      if (isTypeClass(lastReturnType)) {
+        declareGlobalObject(lastReturnType, "@" + lastFuncName);
+      } else if (isTypeArray(lastReturnType)) {
         string type; int size;
         splitArrayType(lastReturnType, type, size);
         memory_map.DeclareGlobalArray(type, "@" + lastFuncName, size);
@@ -358,6 +442,15 @@ public:
     }
 
     inFunction = true;
+
+    // Declare a global object to pass the information
+    // Make a local copy of it
+    if (inClass) {
+      declareGlobalObject(lastClassName, "@@" + lastFuncName);
+      declareObject(lastClassName, "");
+      popObject(lastClassName, "@@" + lastFuncName);
+    }
+
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
@@ -370,7 +463,9 @@ public:
     }
 
     for (Param param : params) {
-      if (isTypeArray(param.paramType)) {
+      if (isTypeClass(param.paramType)) {
+        rPopObject(param.paramName, param.paramType);
+      } else if (isTypeArray(param.paramType)) {
         popArray(param.paramName, param.paramType);
       } else {
         addQuad("POP", memory_map.Get(param.paramName, param.paramType), "", "");
@@ -380,7 +475,7 @@ public:
     params.clear();
 
     stringstream ss;
-    ss << "function declared: " << lastFuncName << endl;
+    ss << "function declared: " << lastFuncName;
     debug(ss.str());
 
     if (lastFuncName == "main") {
@@ -395,6 +490,32 @@ public:
     int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
     for (int i = 0; i < size; i++) {
       addQuad("POP", toString(baseMemory + size - 1 - i), "", "");
+    }
+  }
+
+  // Copies all of the attributes of an object to local memory, from its global variable
+  void popObject(string className, string globalVariable) {
+    assignObject("", globalVariable + ".", className);
+  }
+
+  // When returning a method, copy the modified object into the global variable
+  void pushObjectEnd(string globalName, string className) {
+    assignObject(globalName + ".", "", className);
+  }
+
+  // Pops an object from the stack to receive it as a parameter
+  void rPopObject(string objectName, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto attribute = table.rbegin(); attribute != table.rend(); attribute++) {
+      string attrName = objectName + "." + attribute->first;
+      string attrType = attribute->second;
+      if (isTypeClass(attrType)) {
+        rPopObject(attrName, attrType);
+      } else if (isTypeArray(attrType)) {
+        popArray(attrName, attrType);
+      } else {
+        addQuad("POP", memory_map.Get(attrName, attrType), "", "");
+      }
     }
   }
 
@@ -428,8 +549,23 @@ public:
 
     classes[lastIdName] = Class(lastIdName);
     stringstream ss;
-    ss << "class declared: " << lastIdName << endl;
+    ss << "class declared: " << lastIdName;
     debug(ss.str());
+  }
+
+  // called when a class inherits from another
+  void setParentClass() {
+    classes[lastClassName].parentClass = lastIdName;
+  }
+
+  // returns whether a class is a subclass of another
+  bool isSubclass(string className, string superclass) {
+    while (className != "") {
+      if (className == superclass)
+        return true;
+      className = classes[className].parentClass;
+    }
+    return false;
   }
 
   // called when finishing reading a class
@@ -454,25 +590,58 @@ public:
   // e.g. foo(1, "abc")
   // ~~~~~~~~^~~~~~~~~
   void fnCallInit() {
+    string functionName = lastIdName;
+
     if (isObjFnCall) {
       string objType = typeStack.top();
       typeStack.pop();
-      lastIdName = objType + "." + lastIdName;
-    } else if (inClass && functions.count(lastClassName + "." + lastIdName)) {
-      lastIdName = lastClassName + "." + lastIdName;
+      operandStack.pop();
+      string methodName = findParentMethod(objType, functionName);
+      if (methodName != "")
+        functionName = methodName;
+      else
+        functionName = objType + "." + functionName;
+    } else if (inClass) {
+      string methodName = findParentMethod(lastClassName, functionName);
+      if (methodName != "")
+        functionName = methodName;
     }
 
-    if (functions.find(lastIdName) == functions.end()) {
-      semanticError("Use of undeclared function " + lastIdName);
+    if (functions.find(functionName) == functions.end()) {
+      semanticError("Use of undeclared function " + functionName);
     }
 
     stringstream ss;
-    ss << "function call init: " << lastIdName << endl;
+    ss << "function call init: " << functionName;
     debug(ss.str());
 
-    fnCallStack.push(lastIdName);
+    fnCallStack.push(functionName);
+    methodCallStack.push(isObjFnCall);
     fnCallNumArgsStack.push(0);
     isObjFnCall = false;
+  }
+
+  // finds a method with such a name in one of the parent classes
+  string findParentMethod(string className, string functionName) {
+    string methodName;
+    while (className != "") {
+      methodName = className + "." + functionName;
+      if (functions.count(methodName))
+        return methodName;
+      className = classes[className].parentClass;
+    }
+    return "";
+  }
+
+  // Returns the class given a method name
+  string getClassFromMethod(string method) {
+    int dot = method.find('.');
+    return (dot == string::npos ? "" : method.substr(0, dot));
+  }
+
+  // returns whether the function has a class prefix
+  bool isMethod(string function) {
+    return getClassFromMethod(function) != "";
   }
 
   // returns the type of a variable
@@ -527,10 +696,17 @@ public:
     size = atoi(number.c_str());
   }
 
+  // Returns whether this type is a custom class
+  bool isTypeClass(string type) {
+    return classes.find(type) != classes.end();
+  }
+
   // called after reading the function name of a method call
   void objFnCallInit() {
     isObjFnCall = true;
-    typeStack.push(getSymbolType(lastIdName));
+    // For some reason, this is already inside the stack
+    // typeStack.push(getSymbolType(lastIdName));
+    objectCallStack.push(lastIdName);
   }
 
   // called after reading the name of a variable in an identifier
@@ -540,7 +716,7 @@ public:
     }
 
     stringstream ss;
-    ss << "found assignable: " << lastIdName << endl;
+    ss << "found assignable: " << lastIdName;
     debug(ss.str());
 
     pushOperand(lastIdName, getSymbolType(lastIdName));
@@ -549,7 +725,7 @@ public:
   // called after reading the right hand expression of an assignment
   void assign() { 
     stringstream ss;
-    ss << "found assignment" << endl;
+    ss << "found assignment";
     debug(ss.str());
 
     string expression = operandStack.top();
@@ -560,10 +736,14 @@ public:
     operandStack.pop();
     string assignableType = typeStack.top();
     typeStack.pop();
+    //cout << " = " << expression << " " << expressionType << endl;
+    //cout << " = " << assignable << " " << assignableType << endl;
     if (expressionType != assignableType) {
       semanticError("Expected " + assignableType + " found " + expressionType);
     }
-    if (isTypeArray(assignableType)) {
+    if (isTypeClass(assignableType)) {
+      assignObject(assignable + ".", expression + ".", assignableType);
+    } else if (isTypeArray(assignableType)) {
       assignArray(assignable, expression, assignableType);
     } else {
       addQuad("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType));
@@ -580,17 +760,47 @@ public:
       addQuad("=", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
     }
   }
+  // Used to copy objects
+  void assignObject(string objectPrefix1, string objectPrefix2, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto const &attribute : table) {
+      string attrName1 = objectPrefix1 + attribute.first;
+      string attrName2 = objectPrefix2 + attribute.first;
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        assignObject(attrName1 + ".", attrName2 + ".", attrType);
+      } else if (isTypeArray(attrType)) {
+        assignArray(attrName1, attrName2, attrType);
+      } else {
+        addQuad("=", memory_map.Get(attrName2, attrType), "", memory_map.Get(attrName1, attrType));
+      }
+    }
+  }
   // called after calling a function
   // foo(12, "abc")
   // ~~~~~~~~~~~~~^~~
   void fnCall() { 
     string fnName = fnCallStack.top();
+    bool isMethodCall = methodCallStack.top();
+    string objectName = "";
+    if (isMethodCall) {
+      objectName = objectCallStack.top();
+      objectCallStack.pop();
+    } else if (isMethod(fnName)) {
+      isMethodCall = true;
+    }
     stringstream ss;
-    ss << "function call ended: " << fnName << endl;
+    ss << "function call ended: " << fnName;
     debug(ss.str());
     fnCallStack.pop();
+    methodCallStack.pop();
     int numArgs = fnCallNumArgsStack.top();
     fnCallNumArgsStack.pop();
+
+    // Copy the object to the global variable
+    if (isMethodCall) {
+      pushObject(objectName, "@@" + fnName, getClassFromMethod(fnName));
+    }
 
     Function& fn = functions[fnName];
     vector<Param> params = fn.params;
@@ -630,7 +840,9 @@ public:
       string arg = operandStack.top();
       operandStack.pop();
 
-      if (isTypeArray(paramType)) {
+      if (isTypeClass(paramType)) {
+        rPushObject(arg, paramType);
+      } else if (isTypeArray(paramType)) {
         pushArray(arg, paramType);
       } else {
         addQuad("PUSH", memory_map.Get(arg, paramType), "", "");
@@ -650,20 +862,30 @@ public:
       addQuad("GOTO", "", "", toString(fn.location));
     }
 
-    typeStack.push(fn.returnType);
+    // Get object from global variable
+    if (isMethodCall) {
+      popObjectEnd(objectName, "@@" + fnName, getClassFromMethod(fnName));
+    }
+
     if (fn.returnType != "void") {
       string tmp;
-      if (isTypeArray(fn.returnType)) {
+      if (isTypeClass(fn.returnType)) {
+        tmp = getTemporalObject(fn.returnType);
+        assignObject(tmp + ".", "@" + fnName + ".", fn.returnType);
+      } else if (isTypeArray(fn.returnType)) {
         string type; int size;
         splitArrayType(fn.returnType, type, size);
         tmp = getTemporalArray(type, size);
         assignArray(tmp, "@" + fnName, fn.returnType);
       } else {
-        tmp = getTemporalVariable(fn.returnType); // alberto
+        tmp = getTemporalVariable(fn.returnType);
         addQuad("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
       }
       operandStack.push(tmp);
       typeStack.push(fn.returnType);
+    } else {
+      operandStack.push("");
+      typeStack.push("void");
     }
   }
   // Pushes each element of the array separately into the runtime stack
@@ -675,12 +897,54 @@ public:
     for (int i = 0; i < size; i++) {
       addQuad("PUSH", toString(baseMemory + i), "", "");
     }
-
+  }
+  // Pushes the object to a global variable to be accessed by the method
+  void pushObject(string objectName, string globalName, string className) {
+    string objectPrefix = objectName + (objectName == "" ? "" : ".");
+    assignObject(globalName + ".", objectPrefix, className);
+  }
+  // After making a method call, copy the modified version of the object
+  void popObjectEnd(string objectName, string globalName, string className) {
+    string objectPrefix = objectName + (objectName == "" ? "" : ".");
+    assignObject(objectPrefix, globalName + ".", className);
+  }
+  // pushes object to stack to pass it as parameter
+  void rPushObject(string objectName, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto const &attribute : table) {
+      string attrName = objectName + "." + attribute.first;
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        rPushObject(attrName, attrType);
+      } else if (isTypeArray(attrType)) {
+        pushArray(attrName, attrType);
+      } else {
+        addQuad("PUSH", memory_map.Get(attrName, attrType), "", "");
+      }
+    }
+  }
+  // Gets how many pushes it will need for this class
+  int getObjectSize(string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    int s = 0;
+    for (auto const &attribute : table) {
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        s += getObjectSize(attrType);
+      } else if (isTypeArray(attrType)) {
+        string type; int size;
+        splitArrayType(attrType, type, size);
+        s += size;
+      } else {
+        s++;
+      }
+    }
+    return s;
   }
   // called after reading a literal
   void literal(string type, string value) {
     stringstream ss;
-    ss << "found literal: " << type << endl;
+    ss << "found literal: " << type << " *** " << value;
     debug(ss.str());
     pushConstant(type, value);
   }
@@ -722,7 +986,7 @@ public:
     pushOperand("&" + cellVariable, arrayType);
 
     stringstream ss;
-    ss << "found array access " << arrayId << "[]: " << arrayType << endl;
+    ss << "found array access " << arrayId << "[]: " << arrayType;
     debug(ss.str());
   }
   // called after reading the last expression of an operation
@@ -732,7 +996,7 @@ public:
   // called after reading an identifier used as an expression
   void varExpr() {
     stringstream ss;
-    ss << "found var expr: " << lastIdName << endl;
+    ss << "found var expr: " << lastIdName;
     debug(ss.str());
     string type = getSymbolType(lastIdName);
     if (type == "") {
@@ -745,20 +1009,28 @@ public:
   void returnExpr() {
     string retType = typeStack.top();
     typeStack.pop();
-    string fnName = (inClass ? lastClassName + "." : "") + lastFuncName;
     string functionReturnType = functions[lastFuncName].returnType;
     if (functionReturnType != retType) {
-      semanticError("function " + fnName + " expects " + functionReturnType + " as return type; found " + retType);
+      semanticError("function " + lastFuncName + " expects " + functionReturnType + " as return type; found " + retType);
     }
 
     if (retType != "void") {
-      if (isTypeArray(functionReturnType)) {
+      if (isTypeClass(functionReturnType)) {
+        assignObject("@" + lastFuncName + ".", operandStack.top() + ".", functionReturnType);
+        operandStack.pop();
+      } else if (isTypeArray(functionReturnType)) {
         assignArray("@" + lastFuncName, operandStack.top(), functionReturnType);
         operandStack.pop();
       } else {
         addQuad("=", memory_map.Get(operandStack.top(), functionReturnType), "", memory_map.Get("@" + lastFuncName, functionReturnType));
         operandStack.pop();
       }
+    }
+
+    // If its a method, push back all the object
+    // We have to first pop the return variable, for it to be at the top of the stack at the end
+    if (inClass) {
+      pushObjectEnd("@@" + lastFuncName, lastClassName);
     }
 
     addQuad("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
@@ -819,6 +1091,7 @@ public:
 private:
   void addQuad(string a, string b, string c, string d) {
     quads.emplace_back(a, b, c, d);
+    //cout << "[" << a << ", " << b << ", " << c << ", " << d << "]" << endl;
     counter++;
   }
   string getTemporalVariable(string type) {
@@ -841,6 +1114,14 @@ private:
     ss << "*t" << tempCounter;
     tempCounter++;
     memory_map.DeclareTemporaryArray(type, ss.str(), size);
+    return ss.str();
+  }
+  string getTemporalObject(string className) {
+    stringstream ss;
+    ss << "*t" << tempCounter;
+    tempCounter++;
+    string temporalObject = ss.str();
+    declareTemporaryObject(className, temporalObject);
     return ss.str();
   }
   int getOperPriority(string oper) {

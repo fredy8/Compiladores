@@ -131,7 +131,7 @@ class MemoryMap {
     }
 
     if (address == -1) {
-      cout << type << " " << name << endl;
+      cout << "Variable with such type not found: " << type << " " << name << endl;
       assert(false);
     }
 

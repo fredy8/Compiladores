@@ -1,0 +1,19 @@
+class Ball {
+  int x;
+  float y;
+  function void setX(int sx) {
+    x = sx;
+    return;
+  }
+  function int getX() {
+    return x;
+  }
+}
+
+function int main() {
+  Ball ball;
+  int b;
+  ball.setX(5);
+  b = (ball.getX());
+  print(itos(b));
+}
