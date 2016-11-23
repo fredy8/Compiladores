@@ -321,15 +321,17 @@ public:
       semanticError("Redeclaration of " + lastIdName);
     }
     
+    stringstream ss;
+
     if (isObjectType && typeIsArray) {
       semanticError("You can't declare an array of a custom class.");
     } else if (isObjectType) {
       isObjectType = false;
       table->operator[](lastIdName) = lastObjectType;
       declareObject(lastObjectType, lastIdName + ".");
-      cout << "object ";
+      ss << "object ";
     } else if (typeIsArray) {
-      cout << "array ";
+      ss << "array ";
       table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
       memory_map.DeclareArrayVariable(scope, lastType, lastIdName, lastArraySize);
     } else {
@@ -337,7 +339,6 @@ public:
       memory_map.DeclareVariable(scope, lastType, lastIdName);
     }
 
-    stringstream ss;
     ss << "var declared: " << lastIdName << endl;
     debug(ss.str());
   }
@@ -347,14 +348,14 @@ public:
     if (table->find(lastIdName) != table->end()) {
       semanticError("Redeclaration of attribute " + lastIdName + " in class " + lastClassName);
     }
+    stringstream ss;
     if (typeIsArray) {
-      cout << "array ";
+      ss << "array ";
       table->operator[](lastIdName) = lastType + "[" + toString(lastArraySize) + "]";
     } else {
       table->operator[](lastIdName) = lastType;
     }
 
-    stringstream ss;
     ss << "attribute declared: " << lastIdName << endl;
     debug(ss.str());
   }
@@ -475,7 +476,6 @@ public:
 
   // When returning a method, copy the modified object into the global variable
   void pushObjectEnd(string globalName, string className) {
-    cout << "PUSH OBJECT END: " << globalName << endl;
     assignObject(globalName + ".", "", className);
   }
 
