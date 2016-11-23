@@ -682,7 +682,7 @@ public:
       string attrName2 = objectPrefix2 + attribute.first;
       string attrType = attribute.second;
       if (isTypeClass(attrType)) {
-        assignObject(attrName1, attrName2, attrType);
+        assignObject(attrName1 + ".", attrName2 + ".", attrType);
       } else if (isTypeArray(attrType)) {
         assignArray(attrName1, attrName2, attrType);
       } else {
