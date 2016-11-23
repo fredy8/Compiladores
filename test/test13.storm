@@ -1,0 +1,25 @@
+function [20]int sort(int arr[20], int n) {
+  int i, j, tmp;
+  for (i = 0; i < n; i = i + 1) {
+    for (j = i + 1; j < n; j = j + 1) {
+      if (arr[j] < arr[i]) {
+        tmp = arr[i];
+        .arr[i] = arr[j];
+        .arr[j] = tmp;
+      }
+    }
+  }
+  return arr;
+}
+
+function int main() {
+  int arr[20], i, n;
+  n = 15;
+  for (i = 0; i < n; i = i + 1) {
+    .arr[i] = n - i;
+  }
+  sort(arr, n);
+  for (i = 0; i < n; i = i + 1) {
+    print(strcat(itos(arr[i]), "\n"));
+  }
+}
