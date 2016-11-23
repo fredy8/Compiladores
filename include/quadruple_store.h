@@ -147,8 +147,7 @@ public:
     std::string c = (operand2 == "" ? "" : memory_map.Get(operand2, type2));
     std::string d = memory_map.Get(result, resultType);
     pushOperand(result, resultType);
-    quads.emplace_back(Quadruple(oper, b, c, d));
-    counter++;
+    addQuad(oper, b, c, d);
   }
   void pushParenthesis() {
     operatorStack.push("(");
@@ -170,8 +169,7 @@ public:
     }
     // Generate GOTOF quadruple and store the counter to modify it later
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTOF", memory_map.Get(condition, "bool"), "", ""));
-    counter++;
+    addQuad("GOTOF", memory_map.Get(condition, "bool"), "", "");
   }
   void ifBlockEnd() {
     // Modify if statement quadruple to jump to the end of block
@@ -180,8 +178,7 @@ public:
     quads[ifQuad].d = toString(counter + 1);
     // Add GOTO jump to the end of the if statement and store the counter
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTO", "", "", ""));
-    counter++;
+    addQuad("GOTO", "", "", "");
   }
   void ifEnd() {
     // Modify end of if block quadruple to jump to this point
@@ -204,8 +201,7 @@ public:
     }
     // Generate GOTOF quadruple and store the counter to modify it later
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTOF", memory_map.Get(condition, "bool"), "", ""));
-    counter++;
+    addQuad("GOTOF", memory_map.Get(condition, "bool"), "", "");
   }
   void whileEnd() {
     int gotof = jumpStack.top();
@@ -213,8 +209,7 @@ public:
     int jump = jumpStack.top();
     jumpStack.pop();
     // Go back to where the condition is evaluated
-    quads.push_back(Quadruple("GOTO", "", "", toString(jump)));
-    counter++;
+    addQuad("GOTO", "", "", toString(jump));
     // Modify quadruple to jump to when false
     quads[gotof].d = toString(counter);
     stringstream ss;
@@ -237,8 +232,7 @@ public:
     // Generate GOTOV quadruple
     int jump = jumpStack.top();
     jumpStack.pop();
-    quads.push_back(Quadruple("GOTOV", memory_map.Get(condition, "bool"), "", toString(jump)));
-    counter++;
+    addQuad("GOTOV", memory_map.Get(condition, "bool"), "", toString(jump));
   }
   void forConditionStart() {
     // Push to jump stack the beginning of the condition
@@ -255,12 +249,10 @@ public:
     }
     // Generate GOTOF quadruple
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTOF", memory_map.Get(condition, "bool"), "", ""));
-    counter++;
+    addQuad("GOTOF", memory_map.Get(condition, "bool"), "", "");
     // Jump to where the block starts (skip third element)
     jumpStack.push(counter);
-    quads.push_back(Quadruple("GOTO", "", "", condition));
-    counter++;
+    addQuad("GOTO", "", "", condition);
     // Store the start of the third element of the for
     jumpStack.push(counter);
   }
@@ -275,8 +267,7 @@ public:
     int jump1 = jumpStack.top();
     jumpStack.pop();
     // Jump back to where the condition evaluation starts
-    quads.push_back(Quadruple("GOTO", "", "", toString(jump1)));
-    counter++;
+    addQuad("GOTO", "", "", toString(jump1));
     // Jump here when the condition is evaluated to true (code inside for)
     quads[jump3].d = toString(counter);
     // Put unused elements back into the stack
@@ -287,8 +278,7 @@ public:
     // Jump back to the third element of the for
     int jump2 = jumpStack.top();
     jumpStack.pop();
-    quads.push_back(Quadruple("GOTO", "", "", toString(jump2)));
-    counter++;
+    addQuad("GOTO", "", "", toString(jump2));
     // Jump here when the condition is false and we exit the loop
     int jump1 = jumpStack.top();
     jumpStack.pop();
@@ -341,8 +331,7 @@ public:
   }
   // read after reading the signature of a function
   void declareFunc() {
-    quads.emplace_back("SCOPE", "PUSH", "", "");
-    counter++;
+    addQuad("SCOPE", "PUSH", "", "");
 
     if (inClass) {
       lastFuncName = lastClassName + "." + lastFuncName;
@@ -384,8 +373,7 @@ public:
       if (isTypeArray(param.paramType)) {
         popArray(param.paramName, param.paramType);
       } else {
-        quads.emplace_back("POP", memory_map.Get(param.paramName, param.paramType), "", "");
-        counter++;
+        addQuad("POP", memory_map.Get(param.paramName, param.paramType), "", "");
       }
     }
 
@@ -406,8 +394,7 @@ public:
     splitArrayType(arrayType, type, size);
     int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
     for (int i = 0; i < size; i++) {
-      quads.emplace_back("POP", toString(baseMemory + size - 1 - i), "", "");
-      counter++;
+      addQuad("POP", toString(baseMemory + size - 1 - i), "", "");
     }
   }
 
@@ -579,8 +566,7 @@ public:
     if (isTypeArray(assignableType)) {
       assignArray(assignable, expression, assignableType);
     } else {
-      quads.push_back(Quadruple("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType)));
-      counter++;
+      addQuad("=", memory_map.Get(expression, expressionType), "", memory_map.Get(assignable, assignableType));
     }
   }
   // Used to copy arrays
@@ -591,8 +577,7 @@ public:
     int baseMemory1 = atoi(memory_map.Get(arrayName1, type).c_str());
     int baseMemory2 = atoi(memory_map.Get(arrayName2, type).c_str());
     for (int i = 0; i < size; i++) {
-      quads.emplace_back("=", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
-      counter++;
+      addQuad("=", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
     }
   }
   // called after calling a function
@@ -629,8 +614,7 @@ public:
     if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
       // push return address
       string ct = getConstantVariable("int", toString(counter+3+numPushes));
-      quads.emplace_back("PUSH", memory_map.Get(ct, "int"), "", "");
-      counter++;
+      addQuad("PUSH", memory_map.Get(ct, "int"), "", "");
     }
 
     // check fn args types and push them to the stack
@@ -649,27 +633,21 @@ public:
       if (isTypeArray(paramType)) {
         pushArray(arg, paramType);
       } else {
-        quads.emplace_back("PUSH", memory_map.Get(arg, paramType), "", "");
-        counter++;
+        addQuad("PUSH", memory_map.Get(arg, paramType), "", "");
       }
     }
 
     if (fnName == "read") {
-      quads.emplace_back("READ", memory_map.Get("@" + fnName, fn.returnType), "", "");
-      counter++;
+      addQuad("READ", memory_map.Get("@" + fnName, fn.returnType), "", "");
     } else if (fnName == "print") {
-      quads.emplace_back("PRINT", "", "", "");
-      counter++;
+      addQuad("PRINT", "", "", "");
     } else if (fnName == "itos") {
-      quads.emplace_back("ITOS", memory_map.Get("@" + fnName, fn.returnType), "", "");
-      counter++;
+      addQuad("ITOS", memory_map.Get("@" + fnName, fn.returnType), "", "");
     } else if (fnName == "strcat") {
-      quads.emplace_back("STRCAT", memory_map.Get("@" + fnName, fn.returnType), "", "");
-      counter++;
+      addQuad("STRCAT", memory_map.Get("@" + fnName, fn.returnType), "", "");
     } else {
       // goto function
-      quads.emplace_back("GOTO", "", "", toString(fn.location));
-      counter++;
+      addQuad("GOTO", "", "", toString(fn.location));
     }
 
     typeStack.push(fn.returnType);
@@ -682,8 +660,7 @@ public:
         assignArray(tmp, "@" + fnName, fn.returnType);
       } else {
         tmp = getTemporalVariable(fn.returnType); // alberto
-        quads.emplace_back("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
-        counter++;
+        addQuad("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
       }
       operandStack.push(tmp);
       typeStack.push(fn.returnType);
@@ -696,8 +673,7 @@ public:
     splitArrayType(arrayType, type, size);
     int baseMemory = atoi(memory_map.Get(arrayName, type).c_str());
     for (int i = 0; i < size; i++) {
-      quads.emplace_back("PUSH", toString(baseMemory + i), "", "");
-      counter++;
+      addQuad("PUSH", toString(baseMemory + i), "", "");
     }
 
   }
@@ -733,16 +709,14 @@ public:
     string indexMemory = memory_map.Get(index, "int");
 
     // Generate quadrule to verify that index is valid
-    quads.emplace_back(Quadruple("VER", indexMemory, toString(arraySize), ""));
-    counter++;
+    addQuad("VER", indexMemory, toString(arraySize), "");
     // Store array size to add it to the index
     string ct = getConstantVariable("int", arrayMemory);
     string ctMemory = memory_map.Get(ct, "int");
     // Add them to get the memory for the array cell
     string cellVariable = getTemporalVariable("int");
     string cellMemory = memory_map.Get(cellVariable, "int");
-    quads.emplace_back(Quadruple("+", ctMemory, indexMemory, cellMemory));
-    counter++;
+    addQuad("+", ctMemory, indexMemory, cellMemory);
     // Push the result to the operand stack as an indirect access
     arrayType.substr(0, arrayType.find('['));
     pushOperand("&" + cellVariable, arrayType);
@@ -782,16 +756,13 @@ public:
         assignArray("@" + lastFuncName, operandStack.top(), functionReturnType);
         operandStack.pop();
       } else {
-        quads.emplace_back("=", memory_map.Get(operandStack.top(), functionReturnType), "", memory_map.Get("@" + lastFuncName, functionReturnType));
-        counter++;
+        addQuad("=", memory_map.Get(operandStack.top(), functionReturnType), "", memory_map.Get("@" + lastFuncName, functionReturnType));
         operandStack.pop();
       }
     }
 
-    quads.emplace_back("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
-    counter++;
-    quads.emplace_back("RETURN", "", "", "");
-    counter++;
+    addQuad("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
+    addQuad("RETURN", "", "", "");
   }
   // called after reading a return void expression
   void returnVoid() {
@@ -843,10 +814,13 @@ public:
     functions["itos"] = Function("itos", "string", vector<Param>{ { "number", "int" } });
     memory_map.DeclareGlobal("string", "@itos");
 
-    quads.emplace_back("GOTO", "", "", "");
-    counter++;
+    addQuad("GOTO", "", "", "");
   }
 private:
+  void addQuad(string a, string b, string c, string d) {
+    quads.emplace_back(a, b, c, d);
+    counter++;
+  }
   std::string getTemporalVariable(string type) {
     std::stringstream ss;
     ss << "*t" << tempCounter;
@@ -859,8 +833,7 @@ private:
     ss << "$c" << constCounter;
     constCounter++;
     memory_map.DeclareConstant(type, ss.str());
-    quads.emplace_back("CONSTANT", type, value, memory_map.Get(ss.str(), type));
-    counter++;
+    addQuad("CONSTANT", type, value, memory_map.Get(ss.str(), type));
     return ss.str();
   }
   string getTemporalArray(string type, int size) {
