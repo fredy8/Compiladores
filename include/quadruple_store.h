@@ -696,6 +696,9 @@ public:
         numPushes++;
       }
     }
+    if (isMethodCall) {
+      numPushes += getObjectSize(getSymbolType(objectCallStack.top()));
+    }
 
     if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
       // push return address
@@ -779,6 +782,24 @@ public:
       string attrType = attribute.second;
       addQuad("PUSH", memory_map.Get(objectName + "." + attrName, attrType), "", "");
     }
+  }
+  // Gets how many pushes it will need for this class
+  int getObjectSize(string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    int s = 0;
+    for (auto const &attribute : table) {
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        s += getObjectSize(attrType);
+      } else if (isTypeArray(attrType)) {
+        string type; int size;
+        splitArrayType(attrType, type, size);
+        s += size;
+      } else {
+        s++;
+      }
+    }
+    return s;
   }
   // called after reading a literal
   void literal(string type, string value) {
