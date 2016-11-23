@@ -200,6 +200,7 @@ int main(int argc, char** argv) {
   } while (!feof(yyin));
 
   VirtualMachine vm(quadStore.quads);
+  vm.Start();
 }
 
 void yyerror(const char *s) {

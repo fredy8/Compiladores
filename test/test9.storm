@@ -11,6 +11,10 @@ function int parseInt(int i) {
 function int main() {
   int a, b, c, d, e;
   string f;
+  b = 2;
+  c = 4;
+  print(strcat(itos(6+3), "\n"));
+  print(strcat(itos(c), "\n"));
   a = parseInt(b);
   if (!(b == c)) {
     f = read();

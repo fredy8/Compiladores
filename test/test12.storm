@@ -1,0 +1,54 @@
+function int fact(int k) {
+  int ret;
+
+  ret = 1;
+  int i;
+  for (i = 1; i <= k; i = i+1) {
+    ret = ret*i;
+  }
+  return ret;
+}
+
+function int factR(int k) {
+  if (k == 0) {
+    return 1;
+  }
+
+  return k*factR(k - 1);
+}
+
+function int fibonacci(int n) {
+  int prev, prevprev, i;
+  prev = 1;
+  prevprev = 1;
+  for(i = 2; i <= n; i = i+1) {
+    int aux;
+    aux = prev + prevprev;
+    prevprev = prev;
+    prev = aux;
+  }
+
+  return prev;
+}
+
+function int fibonacciR(int n) {
+  if (n < 2) {
+    return 1;
+  }
+
+  return fibonacciR(n - 1) + fibonacciR(n - 2);
+}
+
+function int main() {
+  print("Factorial Iterativo\n");
+  print(strcat(itos(fact(7)), "\n"));
+
+  print("Factorial Recursivo\n");
+  print(strcat(itos(factR(7)), "\n"));
+
+  print("Fibonacci Ciclico\n");
+  print(strcat(itos(fibonacci(8)), "\n"));
+
+  print("Fibonacci Recursivo\n");
+  print(strcat(itos(fibonacciR(20)), "\n"));
+}
