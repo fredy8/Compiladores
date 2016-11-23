@@ -36,6 +36,10 @@ public:
   string lastFuncName;
   // the most recent return type read
   string lastReturnType;
+  // true if the return type is an array
+  bool returnTypeIsArray;
+  // the most recent return size of array read
+  int lastReturnArraySize;
   // the most recent class name read
   string lastClassName;
   // the most recent operator read
@@ -348,10 +352,21 @@ public:
       semanticError("Redefinition of function " + lastFuncName);
     }
 
+    if (returnTypeIsArray) {
+      lastReturnType += "[" + toString(lastReturnArraySize) + "]";
+    }
+
     Function fn = Function(lastFuncName, lastReturnType, params, counter-1);
     functions[lastFuncName] = fn;
-    if (lastReturnType != "void")
-      memory_map.DeclareGlobal(lastReturnType, "@" + lastFuncName);
+    if (lastReturnType != "void") {
+      if (isTypeArray(lastReturnType)) {
+        string type; int size;
+        splitArrayType(lastReturnType, type, size);
+        memory_map.DeclareGlobalArray(type, "@" + lastFuncName, size);
+      } else {
+        memory_map.DeclareGlobal(lastReturnType, "@" + lastFuncName);
+      }
+    }
 
     inFunction = true;
     for(auto& param: fn.params) {
@@ -400,6 +415,14 @@ public:
   void validateArraySize() {
     if (lastArraySize <= 0) {
       semanticError("Expected array size greater than 0.");
+    }
+  }
+
+  // check that an array size supplied is valid
+  // called after reading a return array size
+  void validateReturnArraySize() {
+    if (lastReturnArraySize <= 0) {
+      semanticError("Expected return array size greater than 0.");
     }
   }
 
@@ -567,7 +590,7 @@ public:
     int baseMemory1 = atoi(memory_map.Get(arrayName1, type).c_str());
     int baseMemory2 = atoi(memory_map.Get(arrayName2, type).c_str());
     for (int i = 0; i < size; i++) {
-      quads.emplace_back(")", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
+      quads.emplace_back("=", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
       counter++;
     }
   }
@@ -650,10 +673,19 @@ public:
 
     typeStack.push(fn.returnType);
     if (fn.returnType != "void") {
-      string tmp = getTemporalVariable(fn.returnType);
-      quads.emplace_back("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
-      counter++;
+      string tmp;
+      if (isTypeArray(fn.returnType)) {
+        string type; int size;
+        splitArrayType(fn.returnType, type, size);
+        tmp = getTemporalArray(type, size);
+        assignArray(tmp, "@" + fnName, fn.returnType);
+      } else {
+        tmp = getTemporalVariable(fn.returnType); // alberto
+        quads.emplace_back("=", memory_map.Get("@" + fnName, fn.returnType), "", memory_map.Get(tmp, fn.returnType));
+        counter++;
+      }
       operandStack.push(tmp);
+      typeStack.push(fn.returnType);
     }
   }
   // Pushes each element of the array separately into the runtime stack
@@ -738,14 +770,20 @@ public:
     string retType = typeStack.top();
     typeStack.pop();
     string fnName = (inClass ? lastClassName + "." : "") + lastFuncName;
-    if (functions[lastFuncName].returnType != retType) {
-      semanticError("function " + fnName + " expects " + functions[lastFuncName].returnType + " as return type; found " + retType);
+    string functionReturnType = functions[lastFuncName].returnType;
+    if (functionReturnType != retType) {
+      semanticError("function " + fnName + " expects " + functionReturnType + " as return type; found " + retType);
     }
 
     if (retType != "void") {
-      quads.emplace_back("=", memory_map.Get(operandStack.top(), functions[lastFuncName].returnType), "", memory_map.Get("@" + lastFuncName, functions[lastFuncName].returnType));
-      counter++;
-      operandStack.pop();
+      if (isTypeArray(functionReturnType)) {
+        assignArray("@" + lastFuncName, operandStack.top(), functionReturnType);
+        operandStack.pop();
+      } else {
+        quads.emplace_back("=", memory_map.Get(operandStack.top(), functionReturnType), "", memory_map.Get("@" + lastFuncName, functionReturnType));
+        counter++;
+        operandStack.pop();
+      }
     }
 
     quads.emplace_back("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
@@ -821,6 +859,13 @@ private:
     memory_map.DeclareConstant(type, ss.str());
     quads.emplace_back("CONSTANT", type, value, memory_map.Get(ss.str(), type));
     counter++;
+    return ss.str();
+  }
+  string getTemporalArray(string type, int size) {
+    std::stringstream ss;
+    ss << "*t" << tempCounter;
+    tempCounter++;
+    memory_map.DeclareTemporaryArray(type, ss.str(), size);
     return ss.str();
   }
   int getOperPriority(std::string oper) {

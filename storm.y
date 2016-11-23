@@ -80,6 +80,10 @@ var_arr:
   | id '[' C_INT ']' { quadStore.typeIsArray = true; quadStore.lastArraySize = atoi(yylval.sval); quadStore.validateArraySize(); };
 function:
   FUNCTION return_type { quadStore.lastReturnType = string(yylval.sval); } id { quadStore.lastFuncName = string(yylval.sval); } '(' parameters ')' { quadStore.declareFunc(); } block { quadStore.functionExit(); };
+return_type:
+  T_VOID { quadStore.returnTypeIsArray = false; }
+  | '[' C_INT ']' { quadStore.returnTypeIsArray = true; quadStore.lastReturnArraySize = atoi(yylval.sval); quadStore.validateReturnArraySize(); } type
+  | type { quadStore.returnTypeIsArray = false; };
 parameters:
   | params;
 params:
@@ -113,8 +117,6 @@ else_stm:
 return_stm:
   RETURN { quadStore.returnVoid(); } ';'
   | RETURN expr { quadStore.returnExpr(); } ';';
-return_type:
-  T_VOID | type;
 type:
   type_aux { quadStore.lastType = string(yylval.sval); };
 type_aux: 

@@ -59,10 +59,13 @@ class MemoryMap {
   void DeclareLocalArray(string type, string name, int size) {
     DeclareArrayVariable(VT_Local, type, name, size);
   }
+  void DeclareTemporaryArray(string type, string name, int size) {
+    DeclareArrayVariable(VT_Temporary, type, name, size);
+  }
   void DeclareArrayVariable(VariableLifetime lifetime, string variable_type, string var_name, int size) {
     auto& area_pointers = memory_pointers.find(lifetime)->second;
 
-    if (lifetime != VT_Global && lifetime != VT_Local) {
+    if (lifetime == VT_Constant) {
       cout << "Array can't be declared in Lifetime: " << lifetime << endl;
       assert(false);
     }
