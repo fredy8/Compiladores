@@ -556,6 +556,16 @@ public:
     classes[lastClassName].parentClass = lastIdName;
   }
 
+  // returns whether a class is a subclass of another
+  bool isSubclass(string className, string superclass) {
+    while (className != "") {
+      if (className == superclass)
+        return true;
+      className = classes[className].parentClass;
+    }
+    return false;
+  }
+
   // called when finishing reading a class
   void endClass() {
     inClass = false;
@@ -578,27 +588,53 @@ public:
   // e.g. foo(1, "abc")
   // ~~~~~~~~^~~~~~~~~
   void fnCallInit() {
+    string functionName = lastIdName;
+
     if (isObjFnCall) {
       string objType = typeStack.top();
       typeStack.pop();
-      lastIdName = objType + "." + lastIdName;
       operandStack.pop();
-    } else if (inClass && functions.count(lastClassName + "." + lastIdName)) {
-      lastIdName = lastClassName + "." + lastIdName;
+      string methodName = findParentMethod(objType, functionName);
+      if (methodName != "")
+        functionName = methodName;
+      else
+        functionName = objType + "." + functionName;
+    } else if (inClass) {
+      string methodName = findParentMethod(lastClassName, functionName);
+      if (methodName != "")
+        functionName = methodName;
     }
 
-    if (functions.find(lastIdName) == functions.end()) {
-      semanticError("Use of undeclared function " + lastIdName);
+    if (functions.find(functionName) == functions.end()) {
+      semanticError("Use of undeclared function " + functionName);
     }
 
     stringstream ss;
-    ss << "function call init: " << lastIdName << endl;
+    ss << "function call init: " << functionName << endl;
     debug(ss.str());
 
-    fnCallStack.push(lastIdName);
+    fnCallStack.push(functionName);
     methodCallStack.push(isObjFnCall);
     fnCallNumArgsStack.push(0);
     isObjFnCall = false;
+  }
+
+  // finds a method with such a name in one of the parent classes
+  string findParentMethod(string className, string functionName) {
+    string methodName;
+    while (className != "") {
+      methodName = className + "." + functionName;
+      if (functions.count(methodName))
+        return methodName;
+      className = classes[className].parentClass;
+    }
+    return "";
+  }
+
+  // Returns the class given a method name
+  string getClassFromMethod(string method) {
+    int dot = method.find('.');
+    return method.substr(0, dot);
   }
 
   // returns the type of a variable
@@ -754,7 +790,7 @@ public:
 
     // Copy the object to the global variable
     if (isMethodCall) {
-      pushObject(objectName, "@@" + fnName, getSymbolType(objectName));
+      pushObject(objectName, "@@" + fnName, getClassFromMethod(fnName));
     }
 
     Function& fn = functions[fnName];
@@ -819,7 +855,7 @@ public:
 
     // Get object from global variable
     if (isMethodCall) {
-      popObjectEnd(objectName, "@@" + fnName, getSymbolType(objectName));
+      popObjectEnd(objectName, "@@" + fnName, getClassFromMethod(fnName));
     }
 
     if (fn.returnType != "void") {

@@ -1,5 +1,8 @@
 class A {
   int x;
+  function int getTEN() {
+    return 10;
+  }
 }
 
 class B extends A {
@@ -17,5 +20,8 @@ function int main() {
   b.setX(3);
   int c;
   c = (b.getX());
+  print(itos(c));
+  print("\n");
+  c = (b.getTEN());
   print(itos(c));
 }
