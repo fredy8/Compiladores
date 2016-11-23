@@ -1,0 +1,129 @@
+<Alfredo Altamirano> Merge pull request #1 from fredy8/classes
+<Alberto Astiazaran> Testing arrays as attributes.
+<Alberto Astiazaran> Clean debug output.
+<Alberto Astiazaran> Test file 20.
+<Alberto Astiazaran> Call other methods from within a method.
+<Alberto Astiazaran> Subclasses can now call methods on their parents.
+<Alberto Astiazaran> Simple inheritance, takes attributes from parent class.
+<Alberto Astiazaran> Pass objects as parameters.
+<Alberto Astiazaran> Returning objects from functions.
+<Alberto Astiazaran> Test files for composition and returning objects from functions.
+<Alberto Astiazaran> Composition bug is fixed! :)
+<Alberto Astiazaran> Logging now indicates the defined variable correctly.
+<Alberto Astiazaran> Remove cout's
+<Alberto Astiazaran> File for testing simple objects.
+<Alberto Astiazaran> CLASSES AND OBJECTS F***ING WORK!
+<Alberto Astiazaran> Adding number of pushes according to objects pushed.
+<Alberto Astiazaran> Declaring objects, it is missing saving the new state after returning.
+<Alberto Astiazaran> Merge branch 'master' into classes
+<Alberto Astiazaran> Remove std::
+<Alberto Astiazaran> Add quads in just a single place (for debugging and avoiding missing counter++)
+<Alberto Astiazaran> Set memory for object attributes.
+<Alberto Astiazaran> You now have to declare all attributes before methods.
+<Alberto Astiazaran> Find and binary_search
+<Alberto Astiazaran> Nasty bug (passing array and non-array parameters)
+<Alberto Astiazaran> sort file fixed
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<fredy8> remove logs
+<fredy8> remove logs
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<fredy8> fix bug
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<fredy8> ambiguedad
+<fredy8> test 14
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<Alberto Astiazaran> Sort test file
+<Alberto Astiazaran> Return arrays on functions.
+<Alberto Astiazaran> Make arrays assignable
+<fredy8> Merge branch 'master' of github.com:fredy8/Compiladores
+<fredy8> virtual machine double dereference access
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<Alberto Astiazaran> Fix return address for function call with array params.
+<fredy8> Merge branch 'master' of github.com:fredy8/Compiladores
+<fredy8> fix array verification
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<fredy8> Merge branch 'master' of github.com:fredy8/Compiladores
+<fredy8> scopes
+<Alberto Astiazaran> It can now pass arrays as a parameter of a function
+<Alberto Astiazaran> Accept arrays as parameters for functions.
+<Alberto Astiazaran> Included array size in type, to match assignation and parameters
+<Alberto Astiazaran> Accept bool constants
+<fredy8> merge
+<Alberto Astiazaran> Array access test file.
+<Alberto Astiazaran> Fixed arraccess operand and bug with typeStack, and modified stack printing
+<Alberto Astiazaran> Arr declaration and access fixes.
+<Alberto Astiazaran> Array declaration and array access.
+<Alberto Astiazaran> Changed MemoryMap.Get to return strings instead of numbers.
+<Alberto Astiazaran> Undo changes to symbol table.
+<Alberto Astiazaran> Modified symbol table to add more information.
+<Alberto Astiazaran> Fix for unary operator.
+<fredy8> virtual machine
+<fredy8> remove debug info
+<fredy8> remove debug info
+<fredy8> mapear variables a direcciones
+<fredy8> dont pop stack if return is void
+<fredy8> push return value to operand stack
+<fredy8> change return to pop + goto
+<fredy8> functions
+<Alberto Astiazaran> Fix issues with ! operator and pushing operators twice.
+<Alberto Astiazaran> New test
+<fredy8> Merge branch 'master' of github.com:fredy8/Compiladores
+<fredy8> memory map
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<fredy8> cuadruplos de funciones
+<fredy8> refactor
+<Alberto Astiazaran> Memory handler that gives you virtual addresses.
+<fredy8> add read and write functions
+<Alberto Astiazaran> Assign quadruple.
+<Alberto Astiazaran> For quadruple fix, I didn't get the condition.
+<Alberto Astiazaran> For loops.
+<Alberto Astiazaran> Do, while, do_while quadruples.
+<Alberto Astiazaran> Changed order of rules to fix problem
+<Alberto Astiazaran> Quadruples testing
+<Alberto Astiazaran> merge
+<Alberto Astiazaran> Quadruples
+<fredy8> array subscript
+<fredy8> merge
+<Alberto Astiazaran> Assign values to array subindex.
+<fredy8> merge
+<fredy8> array access
+<Alberto Astiazaran> Merge branch 'master' of https://github.com/fredy8/Compiladores
+<Alberto Astiazaran> Show line on semantic errors.
+<fredy8> semantica
+<fredy8> merge
+<Alberto Astiazaran> cube fix 3
+<fredy8> merge
+<Alberto Astiazaran> cube fix 2
+<fredy8> merge
+<Alberto Astiazaran> cube fix
+<Alberto Astiazaran> Make helper function static.
+<fredy8> merge
+<Alberto Astiazaran> Move cube to header file.
+<fredy8> merge
+<fredy8> flex/bison files
+<Alberto Astiazaran> Endl
+<Alberto Astiazaran> std::
+<fredy8> merge
+<Alberto Astiazaran> using namespace std
+<fredy8> merge
+<fredy8> merge and add semantic cube
+<Alberto Astiazaran> Included header file for cube.
+<fredy8> semantica
+<Alberto Astiazaran> Semantic cube.
+<Alberto Astiazaran> Grammar now accepts function declarations without parameters, and lexic now accepts greater than operator. Changed makefile.
+<Alberto Astiazaran> Added TODO file.
+<fredy8> semantica
+<fredy8> more semantics
+<fredy8> basic semantic check
+<fredy8> add char regex
+<Alberto Astiazaran> Added return statement and char constant to lex file.
+<Alberto Astiazaran> Modification of storm.y to include UN_OP and BIN_OP as tokens.
+<fredy8> fix storm.l
+<Alberto Astiazaran> Flex bison ++
+<fredy8> merge
+<fredy8> add test file
+<Alberto Astiazaran> flex y bison
+<Alberto Astiazaran> Gramatica.txt
+<fredy8> project structure
+<Alfredo Altamirano> Initial commit

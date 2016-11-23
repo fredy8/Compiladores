@@ -1,5 +1,24 @@
+function void printEven(int arr[10]) {
+  int j;
+  for(j = 0; j < 10; j = j + 1) {
+    print(itos(arr[j]));
+    print("\n");
+  }
+
+  return;
+}
+
 function int main() {
   int a, arr[10];
   a = 5;
-  arr[a+4] = 6;
+  .arr[a+4] = 6;
+  print(itos(arr[9]));
+
+  int i;
+
+  for (i = 0; i < 10; i = i +  1) {
+    .arr[i] = i*i + 3;
+  }
+
+  printEven(arr);
 }

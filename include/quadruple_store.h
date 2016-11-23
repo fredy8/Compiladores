@@ -1062,8 +1062,11 @@ public:
     if (functions.count("main") == 0) {
       semanticError("No main function found.");
     }
-    cout << " === QUADRUPLES === " << endl;
-    print();
+
+    if (DEBUG) {
+      cout << " === QUADRUPLES === " << endl;
+      print();
+    }
   }
   void print() {
     for (int i = 0; i < quads.size(); i++) {

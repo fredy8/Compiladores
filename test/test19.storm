@@ -25,3 +25,6 @@ function int main() {
   c = (b.getTEN());
   print(itos(c));
 }
+
+
+

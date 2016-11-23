@@ -51,7 +51,9 @@ function int main() {
   for (i = 0; i < n; i = i + 1) {
     print(strcat(itos(arr[i]), "\n"));
   }
-  print("Find 20 on arr: ");
-  print(itos(binary_search(arr, n, 20)));
+  print("Find 10 on arr: ");
+  print(itos(binary_search(arr, n, 10)));
   print("\n");
 }
+
+

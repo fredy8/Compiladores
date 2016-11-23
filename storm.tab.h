@@ -59,13 +59,14 @@
      ELSE = 275,
      RETURN = 276,
      CLASS = 277,
-     UN_OP_P0 = 278,
-     BIN_OP_P1 = 279,
-     BIN_OP_P2 = 280,
-     BIN_OP_P3 = 281,
-     BIN_OP_P4 = 282,
-     BIN_OP_P5 = 283,
-     BIN_OP_P6 = 284
+     EXTENDS = 278,
+     UN_OP_P0 = 279,
+     BIN_OP_P1 = 280,
+     BIN_OP_P2 = 281,
+     BIN_OP_P3 = 282,
+     BIN_OP_P4 = 283,
+     BIN_OP_P5 = 284,
+     BIN_OP_P6 = 285
    };
 #endif
 /* Tokens.  */
@@ -89,13 +90,14 @@
 #define ELSE 275
 #define RETURN 276
 #define CLASS 277
-#define UN_OP_P0 278
-#define BIN_OP_P1 279
-#define BIN_OP_P2 280
-#define BIN_OP_P3 281
-#define BIN_OP_P4 282
-#define BIN_OP_P5 283
-#define BIN_OP_P6 284
+#define EXTENDS 278
+#define UN_OP_P0 279
+#define BIN_OP_P1 280
+#define BIN_OP_P2 281
+#define BIN_OP_P3 282
+#define BIN_OP_P4 283
+#define BIN_OP_P5 284
+#define BIN_OP_P6 285
 
 
 
@@ -111,7 +113,7 @@ typedef union YYSTYPE
   char cval;
 }
 /* Line 1529 of yacc.c.  */
-#line 115 "storm.tab.h"
+#line 117 "storm.tab.h"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
