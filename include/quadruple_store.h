@@ -360,6 +360,7 @@ public:
   }
   // it is used to get the memory for an instance of a custom class 
   void declareObject(string className, string objectPrefix) {
+    bool tmpInClass = inClass;
     inClass = false;
     SymbolTable table = classes[className].classSymbolTable;
     for (auto const &attribute : table) {
@@ -381,7 +382,13 @@ public:
       lastIdName = objectPrefix + attrName;
       declareVar();
     }
-    inClass = true;
+    inClass = tmpInClass;
+  }
+  void declareGlobalObject(string className, string globalName) {
+    bool tmpInFunction = inFunction;
+    inFunction = false;
+    declareObject(className, globalName + ".");
+    inFunction = tmpInFunction;
   }
   // read after reading the signature of a function
   void declareFunc() {
@@ -413,8 +420,12 @@ public:
 
     inFunction = true;
 
+    // Declare a global object to pass the information
+    // Make a local copy of it
     if (inClass) {
+      declareGlobalObject(lastClassName, "@@" + lastFuncName);
       declareObject(lastClassName, "");
+      popObject(lastClassName, "@@" + lastFuncName);
     }
 
     for(auto& param: fn.params) {
@@ -438,10 +449,6 @@ public:
 
     params.clear();
 
-    if (inClass) {
-      popObject(lastClassName);
-    }
-
     stringstream ss;
     ss << "function declared: " << lastFuncName << endl;
     debug(ss.str());
@@ -461,14 +468,15 @@ public:
     }
   }
 
-  // Pops all of the attributes of an object to local memory
-  void popObject(string className) {
-    SymbolTable table = classes[className].classSymbolTable;
-    for (auto attribute = table.rbegin(); attribute != table.rend(); attribute++) {
-      string attrName = attribute->first;
-      string attrType = attribute->second;
-      addQuad("POP", memory_map.Get(attrName, attrType), "", "");
-    }
+  // Pops all of the attributes of an object to local memory, from its global variable
+  void popObject(string className, string globalVariable) {
+    assignObject("", globalVariable + ".", className);
+  }
+
+  // When returning a method, copy the modified object into the global variable
+  void pushObjectEnd(string globalName, string className) {
+    cout << "PUSH OBJECT END: " << globalName << endl;
+    assignObject(globalName + ".", "", className);
   }
 
   // check that an array size supplied is valid
@@ -664,12 +672,33 @@ public:
       addQuad("=", toString(baseMemory2 + i), "", toString(baseMemory1 + i));
     }
   }
+  // Used to copy objects
+  void assignObject(string objectPrefix1, string objectPrefix2, string className) {
+    SymbolTable table = classes[className].classSymbolTable;
+    for (auto const &attribute : table) {
+      string attrName1 = objectPrefix1 + attribute.first;
+      string attrName2 = objectPrefix2 + attribute.first;
+      string attrType = attribute.second;
+      if (isTypeClass(attrType)) {
+        assignObject(attrName1, attrName2, attrType);
+      } else if (isTypeArray(attrType)) {
+        assignArray(attrName1, attrName2, attrType);
+      } else {
+        addQuad("=", memory_map.Get(attrName2, attrType), "", memory_map.Get(attrName1, attrType));
+      }
+    }
+  }
   // called after calling a function
   // foo(12, "abc")
   // ~~~~~~~~~~~~~^~~
   void fnCall() { 
     string fnName = fnCallStack.top();
     bool isMethodCall = methodCallStack.top();
+    string objectName = "";
+    if (isMethodCall) {
+      objectName = objectCallStack.top();
+      objectCallStack.pop();
+    }
     stringstream ss;
     ss << "function call ended: " << fnName << endl;
     debug(ss.str());
@@ -677,6 +706,11 @@ public:
     methodCallStack.pop();
     int numArgs = fnCallNumArgsStack.top();
     fnCallNumArgsStack.pop();
+
+    // Copy the object to the global variable
+    if (isMethodCall) {
+      pushObject(objectName, "@@" + fnName, getSymbolType(objectName));
+    }
 
     Function& fn = functions[fnName];
     vector<Param> params = fn.params;
@@ -696,21 +730,11 @@ public:
         numPushes++;
       }
     }
-    if (isMethodCall) {
-      numPushes += getObjectSize(getSymbolType(objectCallStack.top()));
-    }
 
     if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
       // push return address
       string ct = getConstantVariable("int", toString(counter+3+numPushes));
       addQuad("PUSH", memory_map.Get(ct, "int"), "", "");
-    }
-
-    // After pushing the return address, but before the arguments, we pass the object if necessary
-    if (isMethodCall) {
-      string objectName = objectCallStack.top();
-      objectCallStack.pop();
-      pushObject(objectName, getSymbolType(objectName));
     }
 
     // check fn args types and push them to the stack
@@ -746,6 +770,11 @@ public:
       addQuad("GOTO", "", "", toString(fn.location));
     }
 
+    // Get object from global variable
+    if (isMethodCall) {
+      popObjectEnd(objectName, "@@" + fnName, getSymbolType(objectName));
+    }
+
     if (fn.returnType != "void") {
       string tmp;
       if (isTypeArray(fn.returnType)) {
@@ -774,14 +803,13 @@ public:
       addQuad("PUSH", toString(baseMemory + i), "", "");
     }
   }
-  // Pushes each attribute of the object to the runtime stack
-  void pushObject(string objectName, string className) {
-    SymbolTable table = classes[className].classSymbolTable;
-    for (auto const &attribute : table) {
-      string attrName = attribute.first;
-      string attrType = attribute.second;
-      addQuad("PUSH", memory_map.Get(objectName + "." + attrName, attrType), "", "");
-    }
+  // Pushes the object to a global variable to be accessed by the method
+  void pushObject(string objectName, string globalName, string className) {
+    assignObject(globalName + ".", objectName + ".", className);
+  }
+  // After making a method call, copy the modified version of the object
+  void popObjectEnd(string objectName, string globalName, string className) {
+    assignObject(objectName + ".", globalName + ".", className);
   }
   // Gets how many pushes it will need for this class
   int getObjectSize(string className) {
@@ -869,10 +897,9 @@ public:
   void returnExpr() {
     string retType = typeStack.top();
     typeStack.pop();
-    string fnName = (inClass ? lastClassName + "." : "") + lastFuncName;
     string functionReturnType = functions[lastFuncName].returnType;
     if (functionReturnType != retType) {
-      semanticError("function " + fnName + " expects " + functionReturnType + " as return type; found " + retType);
+      semanticError("function " + lastFuncName + " expects " + functionReturnType + " as return type; found " + retType);
     }
 
     if (retType != "void") {
@@ -883,6 +910,12 @@ public:
         addQuad("=", memory_map.Get(operandStack.top(), functionReturnType), "", memory_map.Get("@" + lastFuncName, functionReturnType));
         operandStack.pop();
       }
+    }
+
+    // If its a method, push back all the object
+    // We have to first pop the return variable, for it to be at the top of the stack at the end
+    if (inClass) {
+      pushObjectEnd("@@" + lastFuncName, lastClassName);
     }
 
     addQuad("SCOPE", "POP", toString(memory_map.kLocalStart), toString(memory_map.kConstantStart - 1));
@@ -967,6 +1000,13 @@ private:
     tempCounter++;
     memory_map.DeclareTemporaryArray(type, ss.str(), size);
     return ss.str();
+  }
+  string getTemporalObject(string className) {
+    stringstream ss;
+    ss << "*t" << tempCounter;
+    tempCounter++;
+    string temporalObject = ss.str();
+    declareObject(className, temporalObject + ".");
   }
   int getOperPriority(string oper) {
     if (oper == "!") return 0;
