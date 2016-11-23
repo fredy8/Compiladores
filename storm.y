@@ -149,17 +149,17 @@ expr1:
   | expr0;
 expr0:
   '(' { quadStore.openParenthesis(); } expr ')' { quadStore.closeParenthesis(); }
-  | assign
   | fn_call
   | obj_fn_call
   | literal
   | arr_access
-  | id { quadStore.varExpr(); };
+  | id { quadStore.varExpr(); }
+  | assign;
 assign:
   assignable '=' expr { quadStore.assign(); };
 assignable:
-  id { quadStore.initAssign(); }
-  | id { quadStore.initArrAccess(); } '[' expr ']' { quadStore.arrAccess(); } ;
+  '.' id { quadStore.initArrAccess(); } '[' expr ']' { quadStore.arrAccess(); }
+  | id { quadStore.initAssign(); };
 fn_call:
   id { quadStore.fnCallInit(); } '(' arguments ')' { quadStore.fnCall(); };
 obj_fn_call:

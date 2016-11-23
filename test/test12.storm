@@ -39,6 +39,14 @@ function int fibonacciR(int n) {
   return fibonacciR(n - 1) + fibonacciR(n - 2);
 }
 
+function int sum(int arr[5]) {
+  int i;
+  for (i = 0; i < 5; i = i + 1) {
+    print(itos(arr[i]));
+    print("\n");
+  }
+}
+
 function int main() {
   print("Factorial Iterativo\n");
   print(strcat(itos(fact(7)), "\n"));
@@ -50,5 +58,14 @@ function int main() {
   print(strcat(itos(fibonacci(8)), "\n"));
 
   print("Fibonacci Recursivo\n");
-  print(strcat(itos(fibonacciR(20)), "\n"));
+  print(strcat(itos(fibonacciR(10)), "\n"));
+
+  int arr[5];
+  .arr[0] = 4;
+  .arr[1] = 3;
+  .arr[2] = 6;
+  .arr[3] = 8;
+  .arr[4] = 1;
+  sum(arr);
 }
+
