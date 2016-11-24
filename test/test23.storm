@@ -1,0 +1,148 @@
+class BankAccount {
+  int balance;
+  function void init() {
+    balance = 0;
+    return;
+  }
+  function void deposit(int money) {
+    balance = balance + money;
+    return;
+  }
+  function bool withdraw(int money) {
+    if (money <= balance) {
+      balance = balance - money;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  function int getBalance() {
+    return balance;
+  }
+}
+
+class Work {
+  int payPerHour;
+  function void init() {
+    payPerHour = 4;
+    return;
+  }
+  function int work(int hours) {
+    return payPerHour*hours;
+  }
+}
+
+class Person {
+  BankAccount bankAccount;
+  Work work;
+  bool hasCar;
+  function void init() {
+    bankAccount.init();
+    work.init();
+    hasCar = false;
+    return;
+  }
+  function void work() {
+    int m;
+    m = (work.work(8));
+    bankAccount.deposit(m);
+    return;
+  }
+  function void giveCar() {
+    hasCar = true;
+    return;
+  }
+  function bool hasCar() {
+    return hasCar;
+  }
+  function bool pay(int p) {
+    bool b;
+    return (bankAccount.withdraw(p));
+  }
+  function int getMoney() {
+    return bankAccount.getBalance();
+  }
+}
+
+class Car {
+  int price;
+  function void init() {
+    price = 200;
+    return;
+  }
+  function int getPrice() {
+    return price;
+  }
+}
+
+class Store {
+  int inventory;
+  BankAccount bankAccount;
+  function bool consumeInventory(int p) {
+    print(itos(p));
+    if (inventory >= 0) {
+      bankAccount.deposit(p);
+      inventory = inventory - 1;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  function int getInventory() {
+    return inventory;
+  }
+  function int getMoney() {
+    return (bankAccount.getBalance());
+  }
+}
+
+class CarStore extends Store {
+  function void init() {
+    inventory = 20;
+    bankAccount.init();
+    return;
+  }
+  function bool buyCar(Car car) {
+    int p;
+    p = (car.getPrice());
+    return consumeInventory(p);
+  }
+}
+
+
+
+function int main() {
+  Person person;
+  CarStore carStore;
+  Car car;
+  int d, p;
+  person.init();
+  carStore.init();
+  car.init();
+  d = 0;
+  while ((person.getMoney()) < (car.getPrice())) {
+    person.work();
+    d = d + 1;
+  }
+  if (carStore.buyCar(car)) {
+    print("Buying car\n");
+    person.giveCar();
+    person.pay(car.getPrice());
+  }
+  print("Price of car: ");
+  print(itos(car.getPrice()));
+  print("\nPerson had to work: ");
+  print(itos(d));
+  print(" days\n");
+  print("Person has car: ");
+  if (person.hasCar()) {
+    print("yes");
+  } else {
+    print("no");
+  }
+  print("\nStore inventory: ");
+  print(itos(carStore.getInventory()));
+  print("\nStore money: ");
+  print(itos(carStore.getMoney()));
+  print("\n");
+}

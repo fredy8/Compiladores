@@ -2,7 +2,7 @@ class Position {
   int x, y;
   function void setXY(int xx, int yy) {
     x = xx;
-    yy = yy;
+    y = yy;
     return;
   }
   function int getX() {
@@ -16,8 +16,6 @@ class Position {
 class Ball {
   Position pos;
   function void set() {
-    int a;
-    a = 0;
     pos.setXY(0, 0);
     return;
   }
@@ -40,4 +38,5 @@ function int main() {
   ball.move();
   b = (ball.getX());
   print(itos(b));
+  print("\n");
 }

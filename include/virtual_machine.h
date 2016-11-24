@@ -153,6 +153,13 @@ class VirtualMachine {
       ss2 << int_address;
       ss << any_cast<int>(access_memory(ss2.str()));
       access_memory(write_address) = ss.str();
+    } else if (quad.a == "STOI") {
+      string write_address = quad.b;
+      int string_address = stack_.top(); stack_.pop();
+      stringstream ss;
+      ss << string_address;
+      string str = any_cast<string>(access_memory(ss.str()));
+      access_memory(write_address) = stoi(str);
     } else if (quad.a == "VER") {
       int idx = any_cast<int>(access_memory(quad.b));
       if (idx < 0 || idx >= stoi(quad.c)) {

@@ -9,6 +9,8 @@ class B extends A {
   int y;
   function void setX(int xx) {
     x = xx;
+    xx = getTEN();
+    x = xx;
   }
   function int getX() {
     return x;

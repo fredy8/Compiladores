@@ -1,0 +1,43 @@
+class Matrix {
+  int arr[20];
+  int NN, MM;
+  function void init(int N, int M) {
+    int i;
+    NN = N;
+    MM = M;
+    for (i = 0; i < N*M; i = i + 1) {
+      .arr[i] = 0;
+    }
+    return;
+  }
+  function int getRows() {
+    return NN;
+  }
+  function int getCols() {
+    return MM;
+  }
+  function int get(int i, int j) {
+    return arr[i * MM + j];
+  }
+  function void set(int i, int j, int value) {
+    .arr[i * MM + j] = value;
+    return;
+  }
+}
+
+function int main() {
+  Matrix matriz1;
+  matriz1.init(3, 2);
+  Matrix matriz2;
+  matriz2.init(2, 4);
+  Matrix matriz3;
+  matriz3 = multiply(
+
+  int i, j;
+  for (i = 0; i < (matriz3.getRows()); i = i + 1) {
+    for (j = 0; j < (matriz3.getCols()); j = j + 1) {
+      print(strcat(itos(matriz3.get(i, j)), " "));
+    }
+    print("\n");
+  }
+}

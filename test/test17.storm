@@ -21,4 +21,5 @@ function int main() {
   int x;
   x = (dot.getX());
   print(itos(x));  
+  print("\n");
 }

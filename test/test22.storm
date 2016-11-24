@@ -1,0 +1,13 @@
+class Matrix {
+  int nn;
+  int mm;
+}
+
+function Matrix id(Matrix m1) {
+  return m1;
+}
+
+function int main() {
+  Matrix matriz1;
+  matriz1 = id(matriz1);
+}

@@ -50,7 +50,7 @@ function int main() {
   print(strcat(itos(fibonacci(8)), "\n"));
 
   print("Fibonacci Recursivo\n");
-  print(strcat(itos(fibonacciR(10)), "\n"));
+  print(strcat(itos(fibonacciR(20)), "\n"));
 }
 
 

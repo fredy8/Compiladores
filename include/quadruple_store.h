@@ -310,6 +310,8 @@ public:
     SymbolTable* table = &globalScopeSymbolTable;
     MemoryMap::VariableLifetime scope = MemoryMap::VT_Global; 
     string varName = lastIdName;
+    string varType = lastType;
+    string objType = lastObjectType;
     if (inFunction) {
       scope = MemoryMap::VT_Local;
       table = &functions[lastFuncName].localSymbolTable;
@@ -335,16 +337,16 @@ public:
       semanticError("You can't declare an array of a custom class.");
     } else if (isObjectType) {
       isObjectType = false;
-      table->operator[](varName) = lastObjectType;
-      declareObject(lastObjectType, varName + ".");
+      table->operator[](varName) = objType;
+      declareObject(objType, varName + ".");
       ss << "object ";
     } else if (typeIsArray) {
       ss << "array ";
-      table->operator[](varName) = lastType + "[" + toString(lastArraySize) + "]";
-      memory_map.DeclareArrayVariable(scope, lastType, varName, lastArraySize);
+      table->operator[](varName) = varType + "[" + toString(lastArraySize) + "]";
+      memory_map.DeclareArrayVariable(scope, varType, varName, lastArraySize);
     } else {
-      table->operator[](varName) = lastType;
-      memory_map.DeclareVariable(scope, lastType, varName);
+      table->operator[](varName) = varType;
+      memory_map.DeclareVariable(scope, varType, varName);
     }
 
     ss << "var declared: " << varName;
@@ -369,6 +371,7 @@ public:
   }
   // it is used to get the memory for an instance of a custom class 
   void declareObject(string className, string objectPrefix) {
+    cout << "Declaring object " << className << " " << objectPrefix << endl;
     bool tmpInClass = inClass;
     inClass = false;
     while (className != "") {
@@ -454,8 +457,13 @@ public:
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
+      cout << "Declaring params " << lastIdName << " " << lastType << endl;
       typeIsArray = false;
-      if (isTypeArray(lastType)) {
+      isObjectType = false;
+      if (isTypeClass(lastType)) {
+        isObjectType = true;
+        lastObjectType = lastType;
+      } else if (isTypeArray(lastType)) {
         splitArrayType(lastType, lastType, lastArraySize);
         typeIsArray = true;
       }
@@ -812,7 +820,9 @@ public:
     }
     int numPushes = 0;
     for (Param param : params) {
-      if (isTypeArray(param.paramType)) {
+      if (isTypeClass(param.paramType)) {
+        numPushes += getObjectSize(param.paramType);
+      } else if (isTypeArray(param.paramType)) {
         string type; int size;
         splitArrayType(param.paramType, type, size);
         numPushes += size;
@@ -821,7 +831,7 @@ public:
       }
     }
 
-    if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos") {
+    if (fnName != "read" && fnName != "print" && fnName != "strcat" && fnName != "itos" && fnName != "stoi") {
       // push return address
       string ct = getConstantVariable("int", toString(counter+3+numPushes));
       addQuad("PUSH", memory_map.Get(ct, "int"), "", "");
@@ -855,6 +865,8 @@ public:
       addQuad("PRINT", "", "", "");
     } else if (fnName == "itos") {
       addQuad("ITOS", memory_map.Get("@" + fnName, fn.returnType), "", "");
+    } else if (fnName == "stoi") {
+      addQuad("STOI", memory_map.Get("@" + fnName, fn.returnType), "", "");
     } else if (fnName == "strcat") {
       addQuad("STRCAT", memory_map.Get("@" + fnName, fn.returnType), "", "");
     } else {
@@ -1088,6 +1100,8 @@ public:
     memory_map.DeclareGlobal("string", "@strcat");
     functions["itos"] = Function("itos", "string", vector<Param>{ { "number", "int" } });
     memory_map.DeclareGlobal("string", "@itos");
+    functions["stoi"] = Function("stoi", "int", vector<Param>{ { "str", "string" } });
+    memory_map.DeclareGlobal("int", "@stoi");
 
     addQuad("GOTO", "", "", "");
   }

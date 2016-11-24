@@ -40,6 +40,6 @@ true|false        { yylval.sval = strdup(yytext); return C_BOOL; }
 !                 { yylval.sval = strdup(yytext); return UN_OP_P0; }
 [;,:\{\}=\(\)\.\[\]]    { return yytext[0]; }
 \'[ a-zA-Z0-0(\\n)\.,]\'           { yylval.sval = strdup(yytext); return C_CHAR; }
-\"[ a-zA-Z0-9(\\n)\.,:]+\" { yylval.sval = strdup(yytext); return C_STRING; }
+\"[ a-zA-Z0-9(\\n)\.,:\-\*]+\" { yylval.sval = strdup(yytext); return C_STRING; }
 
 %%

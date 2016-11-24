@@ -1,0 +1,95 @@
+class Matrix {
+  int arr[20];
+  int NN, MM;
+  function void init(int N, int M) {
+    int i;
+    NN = N;
+    MM = M;
+    for (i = 0; i < N*M; i = i + 1) {
+      .arr[i] = 0;
+    }
+    return;
+  }
+  function int getRows() {
+    return NN;
+  }
+  function int getCols() {
+    return MM;
+  }
+  function int get(int i, int j) {
+    return arr[i * MM + j];
+  }
+  function void set(int i, int j, int value) {
+    .arr[i * MM + j] = value;
+    return;
+  }
+  function void printMatrix() {
+    int i, j;
+    for (i = 0; i < NN; i = i + 1) {
+      for (j = 0; j < MM; j = j + 1) {
+        print(strcat(itos(get(i, j)), " "));
+      }
+      print("\n");
+    }
+    return;
+  }
+}
+
+function Matrix multiply2(Matrix m1, Matrix m2) {
+  Matrix result;
+  result.init(m1.getRows(), m2.getCols());
+  int i, j, k;
+  for (i = 0; i < (m1.getRows()); i = i + 1) {
+    for (j = 0; j < (m2.getCols()); j = j + 1) {
+      for (k = 0; k < (m1.getCols()); k = k + 1) {
+        result.set(i, j, (result.get(i, j)) + (m1.get(i, k)) * (m2.get(k, j)));
+      }
+    }
+  }
+
+  return result;
+}
+
+function Matrix id(Matrix m1) {
+  return m1;
+}
+
+function int main() {
+  Matrix matriz1;
+  matriz1.init(3, 2);
+
+  matriz1.set(0, 0, 2);
+  matriz1.set(0, 1, 2);
+  matriz1.set(1, 0, 11);
+  matriz1.set(1, 1, -2);
+  matriz1.set(2, 0, 7);
+  matriz1.set(2, 1, 8);
+
+  Matrix matriz2;
+  matriz2.init(2, 4);
+
+  matriz2.set(0, 0, -1);
+  matriz2.set(0, 1, 11);
+  matriz2.set(0, 2, 3);
+  matriz2.set(0, 3, 7);
+  matriz2.set(1, 0, -5);
+  matriz2.set(1, 1, 4);
+  matriz2.set(1, 2, 8);
+  matriz2.set(1, 3, 12);
+
+  Matrix matriz3;
+  matriz3 = multiply2(matriz1, matriz2);
+
+  print("Matriz A\n");
+  matriz1.printMatrix();
+  print("\n");
+
+  print("Matriz B\n");
+  matriz2.printMatrix();
+  print("\n");
+
+  print("Matriz A*B\n");
+  matriz3.printMatrix();
+  print("\n");
+
+}
