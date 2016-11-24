@@ -79,7 +79,6 @@ class Store {
   int inventory;
   BankAccount bankAccount;
   function bool consumeInventory(int p) {
-    print(itos(p));
     if (inventory >= 0) {
       bankAccount.deposit(p);
       inventory = inventory - 1;
