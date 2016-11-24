@@ -9,7 +9,7 @@
 #include "symbol_table.h"
 #include "memory_map.h"
 
-const bool DEBUG = true, TRACE = false;
+const bool DEBUG = false, TRACE = false;
 
 using namespace std;
 
@@ -371,7 +371,6 @@ public:
   }
   // it is used to get the memory for an instance of a custom class 
   void declareObject(string className, string objectPrefix) {
-    cout << "Declaring object " << className << " " << objectPrefix << endl;
     bool tmpInClass = inClass;
     inClass = false;
     while (className != "") {
@@ -457,7 +456,6 @@ public:
     for(auto& param: fn.params) {
       lastIdName = param.paramName;
       lastType = param.paramType;
-      cout << "Declaring params " << lastIdName << " " << lastType << endl;
       typeIsArray = false;
       isObjectType = false;
       if (isTypeClass(lastType)) {
@@ -770,18 +768,21 @@ public:
   }
   // Used to copy objects
   void assignObject(string objectPrefix1, string objectPrefix2, string className) {
-    SymbolTable table = classes[className].classSymbolTable;
-    for (auto const &attribute : table) {
-      string attrName1 = objectPrefix1 + attribute.first;
-      string attrName2 = objectPrefix2 + attribute.first;
-      string attrType = attribute.second;
-      if (isTypeClass(attrType)) {
-        assignObject(attrName1 + ".", attrName2 + ".", attrType);
-      } else if (isTypeArray(attrType)) {
-        assignArray(attrName1, attrName2, attrType);
-      } else {
-        addQuad("=", memory_map.Get(attrName2, attrType), "", memory_map.Get(attrName1, attrType));
+    while (className != "") {
+      SymbolTable table = classes[className].classSymbolTable;
+      for (auto const &attribute : table) {
+        string attrName1 = objectPrefix1 + attribute.first;
+        string attrName2 = objectPrefix2 + attribute.first;
+        string attrType = attribute.second;
+        if (isTypeClass(attrType)) {
+          assignObject(attrName1 + ".", attrName2 + ".", attrType);
+        } else if (isTypeArray(attrType)) {
+          assignArray(attrName1, attrName2, attrType);
+        } else {
+          addQuad("=", memory_map.Get(attrName2, attrType), "", memory_map.Get(attrName1, attrType));
+        }
       }
+      className = classes[className].parentClass;
     }
   }
   // called after calling a function
