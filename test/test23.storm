@@ -1,0 +1,71 @@
+class BankAccount {
+  int balance;
+  function void init() {
+    balance = 0;
+    return;
+  }
+  function void deposit(int money) {
+    balance = balance + money;
+    return;
+  }
+  function bool withdraw(int money) {
+    if (money <= balance) {
+      balance = balance - money;
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+class Car {
+  int price;
+  function void init() {
+    price = 100;
+    return;
+  }
+  function int getPrice() {
+    return price;
+  }
+}
+
+class Store {
+  int inventory;
+  Car car;
+  function void init() {
+    inventory = 0;
+  }
+  function bool buyCar() 
+}
+
+class Work {
+  int payPerHour;
+  function void init() {
+    payPerHour = 20;
+    return;
+  }
+  function int work(int hours) {
+    return payPerHour*hours;
+  }
+}
+
+class Person {
+  BankAccount bankAccount;
+  Work work;
+  bool hasCar;
+  function void init() {
+    bankAccount.init();
+    work.init();
+    hasCar = false;
+    return;
+  }
+  function void work() {
+    int m;
+    m = (work.work(8));
+    bankAccount.deposit(m);
+  }
+}
+
+function int main() {
+  
+}
