@@ -1,0 +1,17 @@
+class A {
+  function int getAB() {
+    return 3;
+  }
+}
+
+class B extends A {
+  function int getAB() {
+    return 5;
+  }
+}
+
+function int main() {
+  B b;
+  print(itos(b.getAB()));
+  print("\n");
+}

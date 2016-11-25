@@ -9,8 +9,7 @@ class B extends A {
   int y;
   function void setX(int xx) {
     x = xx;
-    xx = getTEN();
-    x = xx;
+    return;
   }
   function int getX() {
     return x;
@@ -20,13 +19,7 @@ class B extends A {
 function int main() {
   B b;
   b.setX(3);
-  int c;
-  c = (b.getX());
-  print(itos(c));
+  print(itos(b.getX()), "\n");
   print("\n");
-  c = (b.getTEN());
-  print(itos(c));
+  print(itos(b.getTEN()));
 }
-
-
-

@@ -1,0 +1,6 @@
+function int main() {
+  string str;
+  str = read();
+  print(str);
+  print("\n");
+}

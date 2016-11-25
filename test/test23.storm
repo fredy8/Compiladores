@@ -108,8 +108,6 @@ class CarStore extends Store {
   }
 }
 
-
-
 function int main() {
   Person person;
   CarStore carStore;
@@ -124,7 +122,6 @@ function int main() {
     d = d + 1;
   }
   if (carStore.buyCar(car)) {
-    print("Buying car\n");
     person.giveCar();
     person.pay(car.getPrice());
   }
@@ -132,8 +129,9 @@ function int main() {
   print(itos(car.getPrice()));
   print("\nPerson had to work: ");
   print(itos(d));
-  print(" days\n");
-  print("Person has car: ");
+  print(" days\nPerson money: ");
+  print(itos(person.getMoney()));
+  print("\nPerson has car: ");
   if (person.hasCar()) {
     print("yes");
   } else {

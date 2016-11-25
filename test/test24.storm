@@ -1,0 +1,99 @@
+class MinHeap {
+  int arr[40];
+  int s;
+  function void init() {
+    s = 0;
+  }
+  function bool empty() {
+    return s == 0;
+  }
+  function void push(int m) {
+    int k, f, tmp;
+    bool b;
+    s = s + 1;
+    .arr[s] = m;
+    k = s;
+    b = true;
+    while (b) {
+      b = false;
+      if (k > 1) {
+        f = k/2;
+        if (arr[f] > arr[k]) {
+          tmp = arr[k];
+          .arr[k] = arr[f];
+          .arr[f] = tmp;
+          k = f;
+          b = true;
+        }
+      }
+    }
+    return;
+  }
+  function int top() {
+    return arr[1];
+  }
+  function void pop() {
+    int k, f1, f2, tmp;
+    bool b, c;
+    k = 1;
+    b = true;
+    f1 = 2*k;
+    f2 = 2*k + 1;
+    while (f2 <= s) {
+      tmp = arr[k];
+      if (arr[f1] <= arr[f2]) {
+        .arr[k] = arr[f1];
+        .arr[f1] = tmp;
+        k = f1;
+      } else {
+        .arr[k] = arr[f2];
+        .arr[f2] = tmp;
+        k = f2;
+      }
+      f1 = 2*k;
+      f2 = 2*k + 1;
+    }
+    if (f1 == s) {
+      .arr[k] = arr[f1];
+    }
+    s = s - 1;
+    return;
+  }
+}
+
+function int readInt() {
+  string str;
+  str = read();
+  return stoi(str);
+}
+
+function int main() {
+  int i, n, k, num, ans;
+  string str;
+  MinHeap pq;
+  
+  pq.init();
+  n = readInt();
+  k = readInt();
+
+  for (i = 0; i < n; i = i + 1) {
+    num = readInt();
+    if (i%(k + 1) == k) {
+      pq.push(num);
+    } else {
+      if (pq.empty()) {
+        ans = ans + num;
+      } else {
+        if ((pq.top()) > num) {
+          ans = ans + num;
+        } else {
+          ans = ans + (pq.top());
+          pq.pop();
+          pq.push(num);
+        }
+      }
+    }
+  }
+  print(itos(ans));
+  print("\n");
+}

@@ -13,7 +13,7 @@
 using namespace std;
 using namespace boost;
 
-set<string> operators { ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*", "%" };
+set<string> operators { ">", "<", ">=", "<=", "==", "!=", "+", "-", "/", "*", "%", "&&" };
 
 class VirtualMachine {
  public:
@@ -88,6 +88,7 @@ class VirtualMachine {
       else if (quad.a == "/") if (both_int) w = lefti / righti; else w = leftd / rightd;
       else if (quad.a == "*") if (both_int) w = lefti * righti; else w = leftd * rightd;
       else if (quad.a == "%") w = lefti % righti;
+      else if (quad.a == "&&") w = leftb && rightb;
 
     } else if (quad.a == "!") {
       string operand_address = quad.b;
@@ -134,7 +135,7 @@ class VirtualMachine {
       stack_.pop();
       cout << any_cast<string>(access_memory(ss.str()));
     } else if (quad.a == "READ") {
-      string write_address = quad.d;
+      string write_address = quad.b;
       string val;
       cin >> val;
       access_memory(write_address) = val;
